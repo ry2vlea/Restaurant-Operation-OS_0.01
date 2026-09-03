@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Restaurant Operations OS</title>
+
+  <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body>
+
+  <aside class="sidebar">
+
+    <div class="brand">
+      <h2>Restaurant OS</h2>
+      <p>Harbor Grill</p>
+    </div>
+
+    <nav>
+
+      <p class="nav-section">COMMAND CENTER</p>
+
+      <button class="nav-item active">
+        Dashboard
+      </button>
+
+      <button class="nav-item">
+        Today
+      </button>
+
+
+      <p class="nav-section">OPERATIONS</p>
+
+      <button class="nav-item">
+        Shifts
+      </button>
+
+      <button class="nav-item" onclick="window.location.href='tasks.html'">
+        Tasks
+      </button>
+
+      <button class="nav-item" onclick="window.location.href='issues.html'">
+        Issues
+      </button>
+
+      <button class="nav-item">
+        Incidents
+      </button>
+
+
+      <p class="nav-section">INVENTORY</p>
+
+      <button class="nav-item" onclick="window.location.href='inventory.html'">
+        Inventory
+      </button>
+
+      <button class="nav-item" onclick="window.location.href='receiving.html'">
+        Receiving
+      </button>
+
+      <button class="nav-item" onclick="window.location.href='waste.html'">
+        Waste
+      </button>
+
+      <button class="nav-item" onclick="window.location.href='recipes.html'">
+        Recipes
+      </button>
+
+      <button class="nav-item" onclick="window.location.href='menu.html'">
+        Menu
+      </button>
+
+
+      <p class="nav-section">PERFORMANCE</p>
+
+      <button class="nav-item">
+        Daily Report
+      </button>
+
+      <button class="nav-item">
+        Reports
+      </button>
+
+
+      <p class="nav-section">SYSTEM</p>
+
+      <button class="nav-item">
+        Settings
+      </button>
+
+    </nav>
+
+  </aside>
+
+
+  <main class="main">
+
+    <header class="topbar">
+
+      <div>
+        <h1>Dashboard</h1>
+        <p id="currentDate"></p>
+      </div>
+
+      <div class="manager-area">
+
+        <label>Manager on Duty</label>
+
+        <select id="managerSelect">
+          <option>Jordan Lee</option>
+          <option>Alex Rivera</option>
+          <option>Mia Torres</option>
+        </select>
+
+      </div>
+
+    </header>
+
+
+    <section class="welcome">
+
+      <div>
+
+        <p class="eyebrow">CURRENT OPERATIONS</p>
+
+        <h2 id="managerGreeting">Good afternoon, Jordan.</h2>
+
+        <p>
+          Here's what is happening in the restaurant right now.
+        </p>
+
+      </div>
+
+      <button class="primary-button" id="startShiftButton">
+        Start Opening Shift
+      </button>
+
+    </section>
+
+    <section class="dashboard-attention" id="dashboardAttention">
+      <div class="section-header">
+        <div><p class="eyebrow">LIVE OPERATIONS</p><h2>Needs Attention</h2></div>
+        <button class="secondary-button" id="attentionViewAll">View All</button>
+      </div>
+      <div id="attentionList" class="attention-list"></div>
+    </section>
+
+
+    <section>
+
+      <div class="section-header">
+        <h2>Today's Shifts</h2>
+      </div>
+
+      <div class="shift-grid">
+
+        <article class="card shift-dashboard-card" id="openingShiftCard" data-total="10">
+
+          <div class="card-top">
+            <span>OPENING</span>
+            <span class="status neutral">Not Started</span>
+          </div>
+
+          <h3>Opening Shift</h3>
+
+          <p>Manager: Not assigned</p>
+
+          <div class="progress">
+            <div class="progress-bar" style="width:0%"></div>
+          </div>
+
+          <small>0% complete</small>
+
+        </article>
+
+
+        <article class="card shift-dashboard-card" id="midShiftCard" data-total="26">
+
+          <div class="card-top">
+            <span>MID-SHIFT</span>
+            <span class="status neutral">Not Started</span>
+          </div>
+
+          <h3>Mid-Shift</h3>
+
+          <p>Manager: Not assigned</p>
+
+          <div class="progress">
+            <div class="progress-bar" style="width:0%"></div>
+          </div>
+
+          <small>0% complete</small>
+
+        </article>
+
+
+        <article class="card shift-dashboard-card" id="closingShiftCard" data-total="28">
+
+          <div class="card-top">
+            <span>CLOSING</span>
+            <span class="status neutral">Not Started</span>
+          </div>
+
+          <h3>Closing Shift</h3>
+
+          <p>Manager: Not assigned</p>
+
+          <div class="progress">
+            <div class="progress-bar" style="width:0%"></div>
+          </div>
+
+          <small>0% complete</small>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <section>
+
+      <div class="section-header">
+
+        <h2>Operational Overview</h2>
+
+      </div>
+
+
+      <div class="metrics-grid">
+
+        <article class="metric-card metric-card-link" id="openIssuesCard" tabindex="0" role="link">
+
+          <p>OPEN ISSUES</p>
+
+          <h2 id="issueCount">
+            0
+          </h2>
+
+          <span class="good">
+            No critical issues
+          </span>
+
+        </article>
+
+
+        <article class="metric-card metric-card-link" id="pendingTasksCard" tabindex="0" role="link">
+
+          <p>PENDING TASKS</p>
+
+          <h2 id="taskCount">
+            0
+          </h2>
+
+          <span id="taskNote">
+            Nothing overdue
+          </span>
+
+        </article>
+
+
+        <article class="metric-card" id="inventoryHealthCard">
+
+          <p>INVENTORY ALERTS</p>
+
+          <h2>
+            0
+          </h2>
+
+          <span class="good" id="inventoryHealthNote">
+            No inventory items
+          </span>
+
+        </article>
+
+
+        <article class="metric-card">
+
+          <p>EQUIPMENT</p>
+
+          <h2>
+            0
+          </h2>
+
+          <span class="good">
+            All operational
+          </span>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <section class="priority">
+
+      <div>
+
+        <p class="eyebrow">
+          TODAY'S PRIORITY
+        </p>
+
+        <h3 id="priorityText">
+          Complete opening readiness before service.
+        </h3>
+
+      </div>
+
+      <button class="secondary-button">
+        Edit Priority
+      </button>
+
+    </section>
+
+  </main>
+
+
+  <script src="js/issues.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/shift-service.js"></script>
+  <script src="js/handover-service.js"></script>
+  <script src="js/inventory-service.js"></script>
+  <script src="js/daily-report-service.js"></script>
+  <script src="js/components/ui-feedback.js"></script>
+  <script src="js/components/app-shell.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

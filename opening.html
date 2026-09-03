@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    Opening Shift | Restaurant OS
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="css/app.css"
+  >
+
+</head>
+
+
+<body>
+
+
+  <aside class="sidebar">
+
+    <div class="brand">
+
+      <h2>
+        Restaurant OS
+      </h2>
+
+      <p>
+        Harbor Grill
+      </p>
+
+    </div>
+
+
+    <nav>
+
+      <p class="nav-section">
+        COMMAND CENTER
+      </p>
+
+      <button
+        class="nav-item"
+        onclick="window.location.href='index.html'"
+      >
+        Dashboard
+      </button>
+
+      <button class="nav-item">
+        Today
+      </button>
+
+
+      <p class="nav-section">
+        OPERATIONS
+      </p>
+
+      <button class="nav-item active">
+        Shifts
+      </button>
+
+      <button class="nav-item" onclick="window.location.href='tasks.html'">
+        Tasks
+      </button>
+
+      <button class="nav-item" onclick="window.location.href='issues.html'">
+        Issues
+      </button>
+
+      <button class="nav-item">
+        Incidents
+      </button>
+
+
+      <p class="nav-section">
+        INVENTORY
+      </p>
+
+      <button class="nav-item" onclick="window.location.href='inventory.html'">
+        Inventory
+      </button>
+
+      <button class="nav-item" onclick="window.location.href='receiving.html'">
+        Receiving
+      </button>
+
+      <button class="nav-item">
+        Waste
+      </button>
+
+      <button class="nav-item">
+        Recipes
+      </button>
+
+
+      <p class="nav-section">
+        PERFORMANCE
+      </p>
+
+      <button class="nav-item">
+        Daily Report
+      </button>
+
+      <button class="nav-item">
+        Reports
+      </button>
+
+    </nav>
+
+  </aside>
+
+
+
+  <main class="main">
+
+
+    <header class="topbar">
+
+      <div>
+
+        <button
+          class="back-button"
+          onclick="window.location.href='index.html'"
+        >
+          ← Dashboard
+        </button>
+
+        <h1>
+          Opening Shift
+        </h1>
+
+        <p id="shiftInformation">
+          Preparing shift...
+        </p>
+
+      </div>
+
+
+      <div>
+
+        <span
+          class="status shift-status"
+          id="shiftStatus"
+        >
+          In Progress
+        </span>
+
+      </div>
+
+    </header>
+
+
+
+    <section class="shift-progress-card">
+
+      <div>
+
+        <p class="eyebrow">
+          SHIFT PROGRESS
+        </p>
+
+        <h2 id="progressText">
+          0 / 0 tasks complete
+        </h2>
+
+      </div>
+
+
+      <div class="progress">
+
+        <div
+          class="progress-bar"
+          id="openingProgressBar"
+          style="width:0%"
+        ></div>
+
+      </div>
+
+
+      <strong id="progressPercentage">
+        0%
+      </strong>
+
+    </section>
+
+
+
+    <section class="checklist-section">
+
+      <div class="checklist-heading">
+
+        <div>
+
+          <h2>
+            Staffing
+          </h2>
+
+          <p>
+            Confirm today's team is ready for operations.
+          </p>
+
+        </div>
+
+        <span id="staffingProgress">
+          0 / 3
+        </span>
+
+      </div>
+
+
+      <div class="checklist-card">
+
+        <label class="checklist-item">
+
+          <input
+            type="checkbox"
+            data-task="review-schedule"
+          >
+
+          <div>
+
+            <strong>
+              Review today's schedule
+            </strong>
+
+            <small>
+              Confirm scheduled employees and shift coverage.
+            </small>
+
+          </div>
+
+        </label>
+
+
+        <label class="checklist-item">
+
+          <input
+            type="checkbox"
+            data-task="review-callouts"
+          >
+
+          <div>
+
+            <strong>
+              Review call-outs
+            </strong>
+
+            <small>
+              Identify absences or staffing changes.
+            </small>
+
+          </div>
+
+        </label>
+
+
+        <label class="checklist-item">
+
+          <input
+            type="checkbox"
+            data-task="critical-coverage"
+          >
+
+          <div>
+
+            <strong>
+              Confirm critical position coverage
+            </strong>
+
+            <small>
+              Make sure essential stations have coverage.
+            </small>
+
+          </div>
+
+        </label>
+
+      </div>
+
+    </section>
+
+
+
+    <section class="checklist-section">
+
+      <div class="checklist-heading">
+
+        <div>
+
+          <h2>
+            Restaurant Readiness
+          </h2>
+
+          <p>
+            Verify the restaurant is ready for service.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="checklist-card">
+
+        <label class="checklist-item">
+
+          <input
+            type="checkbox"
+            data-task="walkthrough"
+          >
+
+          <div>
+
+            <strong>
+              Complete initial walkthrough
+            </strong>
+
+            <small>
+              Review front and back of house conditions.
+            </small>
+
+          </div>
+
+        </label>
+
+
+        <label class="checklist-item">
+
+          <input
+            type="checkbox"
+            data-task="guest-areas"
+          >
+
+          <div>
+
+            <strong>
+              Verify guest areas
+            </strong>
+
+            <small>
+              Confirm cleanliness and readiness.
+            </small>
+
+          </div>
+
+        </label>
+
+
+        <label class="checklist-item">
+
+          <input
+            type="checkbox"
+            data-task="restrooms"
+          >
+
+          <div>
+
+            <strong>
+              Verify restrooms
+            </strong>
+
+            <small>
+              Confirm cleanliness and supplies.
+            </small>
+
+          </div>
+
+        </label>
+
+      </div>
+
+    </section>
+
+
+
+    <section class="checklist-section">
+
+      <div class="checklist-heading">
+
+        <div>
+
+          <h2>
+            Equipment
+          </h2>
+
+          <p>
+            Confirm critical operating equipment.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="checklist-card">
+
+
+        <div class="checklist-item action-item">
+
+          <label>
+
+            <input
+              type="checkbox"
+              data-task="critical-equipment"
+            >
+
+            <div>
+
+              <strong>
+                Verify critical equipment
+              </strong>
+
+              <small>
+                Check fryers, refrigeration and essential equipment.
+              </small>
+
+            </div>
+
+          </label>
+
+
+          <button
+            class="issue-button"
+            id="equipmentIssueButton"
+          >
+            Report Issue
+          </button>
+
+        </div>
+
+
+
+        <label class="checklist-item">
+
+          <input
+            type="checkbox"
+            data-task="pos"
+          >
+
+          <div>
+
+            <strong>
+              Verify POS systems
+            </strong>
+
+            <small>
+              Confirm terminals are operational.
+            </small>
+
+          </div>
+
+        </label>
+
+      </div>
+
+    </section>
+
+
+
+    <section class="checklist-section">
+
+      <div class="checklist-heading">
+
+        <div>
+
+          <h2>
+            Inventory
+          </h2>
+
+          <p>
+            Review product availability before service.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="checklist-card">
+
+        <label class="checklist-item">
+
+          <input
+            type="checkbox"
+            data-task="critical-stock"
+          >
+
+          <div>
+
+            <strong>
+              Review critical stock
+            </strong>
+
+            <small>
+              Check essential products and ingredients.
+            </small>
+
+          </div>
+
+        </label>
+
+
+        <label class="checklist-item">
+
+          <input
+            type="checkbox"
+            data-task="shortages"
+          >
+
+          <div>
+
+            <strong>
+              Review shortages
+            </strong>
+
+            <small>
+              Identify low or unavailable products.
+            </small>
+
+          </div>
+
+        </label>
+
+      </div>
+
+    </section>
+
+
+
+    <section class="shift-footer">
+
+      <div>
+
+        <p>
+          Complete all required tasks before finalizing the shift.
+        </p>
+
+      </div>
+
+
+      <button
+        class="primary-button"
+        id="completeShiftButton"
+      >
+        Complete Opening Shift
+      </button>
+
+    </section>
+
+
+  </main>
+
+
+  <script src="js/issues.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/components/issue-form.js"></script>
+  <script src="js/components/task-form.js"></script>
+  <script src="js/shift-service.js"></script>
+  <script src="js/handover-service.js"></script>
+  <script src="js/components/ui-feedback.js"></script>
+  <script src="js/components/app-shell.js"></script>
+  <script src="js/opening.js"></script>
+  <script src="js/shift-page.js"></script>
+
+
+</body>
+
+</html>
