@@ -9,7 +9,7 @@
   function produce(values) {
     const inventoryContext = InventoryService.getCalculationContext();
     const recipe = RecipeService.getRecipeById(values.recipeId);
-    if (!recipe || recipe.recipeType !== "PREP" || !recipe.producedInventoryItemId) throw new Error("Select a valid Prep Recipe with a produced Inventory Item.");
+    if (!recipe || RecipeService.recipeTypeOf(recipe) !== "PREP_ITEM" || !recipe.producedInventoryItemId) throw new Error("Select a valid Prep Item with a produced Inventory Item.");
     const multiplier = Number(values.batchMultiplier || 1);
     if (!(multiplier > 0)) throw new Error("Batch multiplier must be greater than zero.");
     const actualYield = Number(values.actualYield);
@@ -23,7 +23,7 @@
     }
 
     const cost = RecipeService.calculateRecipeCost(recipe.id);
-    const ingredients = cost.lines.map((line) => ({ ...line, requiredBaseQuantity: Number(line.ingredient.baseQuantity) * multiplier }));
+    const ingredients = cost.lines.filter((line) => line.item).map((line) => ({ ...line, requiredBaseQuantity: Number(line.baseQuantity) * multiplier }));
     ingredients.forEach((line) => {
       const sourceLocationId = line.item.defaultLocationId;
       const available = inventoryContext.balances.byItemLocation.get(`${line.item.id}|${sourceLocationId}`) || 0;

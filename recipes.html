@@ -13,7 +13,7 @@
           <button class="back-button" onclick="location.href='index.html'">← Dashboard</button>
           <p class="eyebrow">MENU & RECIPES</p>
           <h1>Recipes</h1>
-          <p>Define ingredients, yields and current recipe cost.</p>
+          <p>Define prep items, menu products and combos as inventory consumption models.</p>
         </div>
         <div class="inventory-actions">
           <button class="secondary-button" onclick="location.href='menu.html'">Menu</button>
@@ -21,6 +21,14 @@
           <button class="primary-button" id="newRecipe">+ New Recipe</button>
         </div>
       </header>
+      <section class="recipe-panel recipe-filter-panel">
+        <div class="segmented-controls" id="recipeTypeFilter">
+          <button class="active" type="button" data-recipe-filter="ALL">All</button>
+          <button type="button" data-recipe-filter="PREP_ITEM">Prep Items</button>
+          <button type="button" data-recipe-filter="MENU_PRODUCT">Menu Products</button>
+          <button type="button" data-recipe-filter="COMBO">Combos</button>
+        </div>
+      </section>
       <section id="recipeList" class="recipe-list"></section>
     </main>
     <script src="js/inventory-service.js"></script>

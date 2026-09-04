@@ -27,8 +27,9 @@
             <label>
               Type
               <select name="recipeType">
-                <option value="MENU">Menu Recipe</option>
-                <option value="PREP">Prep Recipe</option>
+                <option value="MENU_PRODUCT">Menu Product</option>
+                <option value="PREP_ITEM">Prep Item</option>
+                <option value="COMBO">Combo</option>
               </select>
             </label>
             <label>
@@ -44,6 +45,10 @@
               <input name="sellingPrice" type="number" min="0" step="0.01">
             </label>
             <label>
+              Target Food Cost %
+              <input name="targetFoodCostPercent" type="number" min="1" max="100" step="0.1" value="30">
+            </label>
+            <label>
               Produced Inventory Item
               <select name="producedInventoryItemId" id="producedItem">
                 <option value="">None</option>
@@ -55,9 +60,9 @@
           <div class="section-header">
             <div>
               <h2>Ingredients</h2>
-              <p>Quantities normalize through Inventory's base unit engine.</p>
+              <p>Components resolve through Inventory, Prep Items and Menu Products.</p>
             </div>
-            <button type="button" class="secondary-button" id="addIngredient">+ Add Ingredient</button>
+            <button type="button" class="secondary-button" id="addIngredient">+ Add Component</button>
           </div>
           <div id="ingredients"></div>
           <div class="recipe-total">

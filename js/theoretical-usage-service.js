@@ -11,10 +11,10 @@
     if (!item) throw new Error("Menu item not found.");
     const recipe = RecipeService.getRecipeById(item.recipeId);
     if (!recipe) throw new Error("Menu item has no valid recipe.");
-    const yieldQuantity = Number(recipe.yieldQuantity || 1);
-    const ingredientSnapshot = RecipeService.getRecipeIngredients(recipe.id).map((ingredient) => ({
-      inventoryItemId: ingredient.inventoryItemId,
-      baseQuantityPerServing: Number(ingredient.baseQuantity || 0) / yieldQuantity
+    const recipeCost = RecipeService.calculateRecipeCost(recipe.id);
+    const ingredientSnapshot = RecipeService.resolveInventoryUsage(RecipeService.recipeTypeOf(recipe), recipe.id, 1).map((ingredient) => ({
+      inventoryItemId: ingredient.itemId,
+      baseQuantityPerServing: Number(ingredient.baseQuantity || 0)
     }));
     const now = new Date().toISOString();
     const sale = {
@@ -24,6 +24,8 @@
       quantitySold: Number(values.quantitySold),
       recipeIdAtSale: recipe.id,
       recipeVersionAtSale: recipe.version || 1,
+      sellingPriceAtSale: Number(item.sellingPrice || 0),
+      theoreticalUnitCostAtSale: recipeCost.unitCost,
       ingredientSnapshot,
       enteredBy: values.enteredBy || localStorage.getItem("currentManager") || "Jordan Lee",
       createdAt: now,
@@ -39,13 +41,10 @@
     const inventoryContext = InventoryService.getCalculationContext();
     const totals = {};
     getSales(date).forEach((sale) => {
+      const recipe = recipeContext.recipeById.get(sale.recipeIdAtSale);
       const snapshot = Array.isArray(sale.ingredientSnapshot) && sale.ingredientSnapshot.length
         ? sale.ingredientSnapshot
-        : (() => {
-            const recipe = recipeContext.recipeById.get(sale.recipeIdAtSale);
-            const yieldQuantity = Number(recipe?.yieldQuantity || 1);
-            return (recipeContext.ingredientsByRecipe.get(sale.recipeIdAtSale) || []).map((ingredient) => ({ inventoryItemId: ingredient.inventoryItemId, baseQuantityPerServing: Number(ingredient.baseQuantity || 0) / yieldQuantity }));
-          })();
+        : RecipeService.resolveInventoryUsage(RecipeService.recipeTypeOf(recipe), sale.recipeIdAtSale, 1).map((ingredient) => ({ inventoryItemId: ingredient.itemId, baseQuantityPerServing: Number(ingredient.baseQuantity || 0) }));
       snapshot.forEach((ingredient) => {
         totals[ingredient.inventoryItemId] = (totals[ingredient.inventoryItemId] || 0) + Number(ingredient.baseQuantityPerServing || 0) * Number(sale.quantitySold || 0);
       });
@@ -56,5 +55,21 @@
     return result;
   }
 
-  window.TheoreticalUsageService = { getSales, saveSale, calculateTheoreticalUsage };
+  function calculateSalesMetrics(startDate, endDate = startDate) {
+    const totals = read().filter((sale) => (!startDate || sale.date >= startDate) && (!endDate || sale.date <= endDate)).reduce((total, sale) => {
+      const item = MenuService.getMenuItemById(sale.menuItemId);
+      const recipe = RecipeService.getRecipeById(sale.recipeIdAtSale || item?.recipeId);
+      const quantity = Number(sale.quantitySold || 0);
+      const sellingPrice = Number(sale.sellingPriceAtSale ?? item?.sellingPrice ?? 0);
+      const unitCost = sale.theoreticalUnitCostAtSale != null ? Number(sale.theoreticalUnitCostAtSale) : RecipeService.calculateRecipeCost(recipe?.id).unitCost;
+      total.unitsSold += quantity;
+      total.revenue += quantity * sellingPrice;
+      total.theoreticalCOGS += unitCost == null ? 0 : quantity * unitCost;
+      return total;
+    }, { unitsSold: 0, revenue: 0, theoreticalCOGS: 0, theoreticalFoodCostPercent: null });
+    totals.theoreticalFoodCostPercent = totals.revenue > 0 ? totals.theoreticalCOGS / totals.revenue * 100 : null;
+    return totals;
+  }
+
+  window.TheoreticalUsageService = { getSales, saveSale, calculateTheoreticalUsage, calculateSalesMetrics };
 })();

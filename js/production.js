@@ -1,4 +1,4 @@
-const prepRecipes = RecipeService.getRecipes().filter((recipe) => recipe.recipeType === "PREP" && recipe.active !== false);
+const prepRecipes = RecipeService.getRecipes().filter((recipe) => RecipeService.recipeTypeOf(recipe) === "PREP_ITEM" && recipe.producedInventoryItemId && recipe.active !== false);
 const recipeSelect = document.getElementById("productionRecipe");
 const locationSelect = document.getElementById("productionLocation");
 const productionForm = document.getElementById("productionForm");

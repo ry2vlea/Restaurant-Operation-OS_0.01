@@ -14,7 +14,7 @@ function renderMenu() {
   ].map(([label, value]) => `<article class="metric-card"><p>${label}</p><h2>${value}</h2></article>`).join("");
 
   menuList.innerHTML = rows.length ? rows.map(({ item, metric }) => {
-    return `<article class="menu-card"><div><p class="eyebrow">${item.categoryId.replace("MCAT-", "")}</p><h2>${item.name}</h2><p>${metric.servings} servings available${metric.limitingIngredient ? ` · Limiting: ${metric.limitingIngredient.name}` : ""}</p></div><div class="menu-financials"><strong>$${item.sellingPrice.toFixed(2)}</strong><span>Cost $${metric.cost.toFixed(2)} · Food Cost ${metric.foodCostPercent?.toFixed(1) || "-"}%</span><span>Contribution $${metric.contribution.toFixed(2)}</span><span class="status-badge ${metric.status.toLowerCase()}">${metric.status.replaceAll("_", " ")}</span></div></article>`;
+    return `<article class="menu-card"><div><p class="eyebrow">${item.categoryId.replace("MCAT-", "")}</p><h2>${item.name}</h2><p>${metric.servings} servings available${metric.limitingIngredient ? ` · Limiting: ${metric.limitingIngredient.name}` : ""}</p></div><div class="menu-financials"><strong>$${item.sellingPrice.toFixed(2)}</strong><span>Cost ${metric.cost == null ? "Incomplete" : `$${metric.cost.toFixed(2)}`} · Food Cost ${metric.foodCostPercent?.toFixed(1) || "-"}%</span><span>Contribution ${metric.contribution == null ? "-" : `$${metric.contribution.toFixed(2)}`}</span><span class="status-badge ${metric.status.toLowerCase()}">${metric.status.replaceAll("_", " ")}</span></div></article>`;
   }).join("") : `<div class="empty-state"><h3>Build Your Menu</h3><p>Add menu items and connect them to recipes to begin tracking cost and availability.</p><div class="empty-actions"><button class="primary-button" id="emptyMenuItem">Add Menu Item</button><button class="secondary-button" onclick="location.href='recipes.html'">Create Recipe</button></div></div>`;
   document.getElementById("emptyMenuItem")?.addEventListener("click", openMenuForm);
   performance.mark?.("menu-page-render:end");
@@ -22,9 +22,9 @@ function renderMenu() {
 }
 
 function openMenuForm() {
-  const recipes = RecipeService.getRecipes().filter((recipe) => recipe.recipeType === "MENU" && recipe.active !== false);
+  const recipes = RecipeService.getRecipes().filter((recipe) => ["MENU_PRODUCT", "COMBO"].includes(RecipeService.recipeTypeOf(recipe)) && recipe.active !== false);
   if (!recipes.length) {
-    showToast("Create a Menu Recipe before adding a Menu Item.", "error");
+    showToast("Create a Menu Product or Combo before adding a Menu Item.", "error");
     return;
   }
   const modal = document.createElement("div");

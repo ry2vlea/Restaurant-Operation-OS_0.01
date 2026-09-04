@@ -23,7 +23,7 @@
   function createMenuItem(values) {
     const recipe = RecipeService.getRecipeById(values.recipeId);
     if (!values.name?.trim() || !(Number(values.sellingPrice) > 0) || !recipe) throw new Error("Name, valid Menu Recipe and selling price are required.");
-    if (recipe.recipeType !== "MENU") throw new Error("Menu Items must link to a Menu Recipe.");
+    if (!["MENU_PRODUCT", "COMBO"].includes(RecipeService.recipeTypeOf(recipe))) throw new Error("Menu Items must link to a Menu Product or Combo.");
     const now = new Date().toISOString();
     const item = {
       id: nextId(),
@@ -49,7 +49,7 @@
     if (!item) throw new Error("Menu item not found.");
     const recipeId = values.recipeId || item.recipeId;
     const recipe = RecipeService.getRecipeById(recipeId);
-    if (!recipe || recipe.recipeType !== "MENU") throw new Error("Select a valid Menu Recipe.");
+    if (!recipe || !["MENU_PRODUCT", "COMBO"].includes(RecipeService.recipeTypeOf(recipe))) throw new Error("Select a valid Menu Product or Combo.");
     const updated = {
       ...item,
       ...values,
@@ -79,16 +79,19 @@
     const context = getCalculationContext();
     if (menuItem?.id && context.availabilityByItem.has(menuItem.id)) return context.availabilityByItem.get(menuItem.id);
     const inventoryContext = InventoryService.getCalculationContext();
-    const recipeContext = RecipeService.getCalculationContext();
     const recipe = RecipeService.getRecipeById(menuItem?.recipeId);
-    if (!menuItem || !recipe || recipe.recipeType !== "MENU") return { servings: 0, status: "UNAVAILABLE", limitingIngredient: null, ingredientAvailability: [] };
-    const yieldQuantity = Number(recipe.yieldQuantity || 1);
-    const ingredients = recipeContext.ingredientsByRecipe.get(recipe.id) || [];
-    const availability = ingredients.map((ingredient) => {
-      const stock = inventoryContext.balances.byItem.get(ingredient.inventoryItemId) || 0;
-      const perServingBaseQuantity = Number(ingredient.baseQuantity || 0) / yieldQuantity;
+    if (!menuItem || !recipe || !["MENU_PRODUCT", "COMBO"].includes(RecipeService.recipeTypeOf(recipe))) return { servings: 0, status: "UNAVAILABLE", limitingIngredient: null, ingredientAvailability: [] };
+    let usage = [];
+    try {
+      usage = RecipeService.resolveInventoryUsage(RecipeService.recipeTypeOf(recipe), recipe.id, 1);
+    } catch (error) {
+      return { servings: 0, status: "UNAVAILABLE", limitingIngredient: null, ingredientAvailability: [], error: error.message };
+    }
+    const availability = usage.map((ingredient) => {
+      const stock = inventoryContext.balances.byItem.get(ingredient.itemId) || 0;
+      const perServingBaseQuantity = Number(ingredient.baseQuantity || 0);
       const servings = perServingBaseQuantity > 0 ? Math.floor((stock + 1e-9) / perServingBaseQuantity) : 0;
-      return { ingredient, item: inventoryContext.itemById.get(ingredient.inventoryItemId) || null, stock, perServingBaseQuantity, servings };
+      return { ingredient, item: inventoryContext.itemById.get(ingredient.itemId) || null, stock, perServingBaseQuantity, servings };
     }).sort((a, b) => a.servings - b.servings);
     const limiting = availability[0] || null;
     const servings = limiting?.servings ?? 0;
@@ -105,14 +108,17 @@
   function calculateMenuMetrics(menuItem) {
     const context = getCalculationContext();
     if (menuItem?.id && context.metricsByItem.has(menuItem.id)) return context.metricsByItem.get(menuItem.id);
+    const recipe = RecipeService.getRecipeById(menuItem.recipeId);
     const recipeCost = RecipeService.calculateRecipeCost(menuItem.recipeId);
-    const cost = recipeCost.costPerYieldUnit;
+    const cost = recipeCost.incomplete ? null : recipeCost.unitCost;
     const availability = calculateAvailability(menuItem);
     const result = {
       ...availability,
       cost,
-      foodCostPercent: menuItem.sellingPrice > 0 ? cost / menuItem.sellingPrice * 100 : null,
-      contribution: Number(menuItem.sellingPrice || 0) - cost
+      incomplete: recipeCost.incomplete,
+      recipeType: recipe ? RecipeService.recipeTypeOf(recipe) : null,
+      foodCostPercent: cost != null && menuItem.sellingPrice > 0 ? cost / menuItem.sellingPrice * 100 : null,
+      contribution: cost != null ? Number(menuItem.sellingPrice || 0) - cost : null
     };
     if (menuItem.id) context.metricsByItem.set(menuItem.id, result);
     return result;
