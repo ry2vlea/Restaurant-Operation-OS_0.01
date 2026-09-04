@@ -1,0 +1,158 @@
+.app-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.app-header-copy {
+  min-width: 0;
+}
+
+.app-header-copy h1 {
+  font-size: 30px;
+  margin-top: 4px;
+}
+
+.app-header-copy > p:not(.eyebrow) {
+  color: var(--secondary-text);
+  margin-top: 4px;
+  max-width: 720px;
+}
+
+.app-header-controls {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.app-header-actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.app-date-selector {
+  display: grid;
+  grid-template-columns: 36px minmax(220px, auto) 36px;
+  gap: 8px;
+  align-items: end;
+}
+
+.date-step-button {
+  width: 36px;
+  height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.date-step-button:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: .5;
+}
+
+.date-selector-main {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+}
+
+.date-selector-main span {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.date-selector-main select,
+.date-custom-fields input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--text);
+  font: inherit;
+}
+
+.date-selector-main select {
+  min-height: 30px;
+  padding: 0 8px;
+  color: var(--secondary-text);
+  font-size: 12px;
+}
+
+.date-custom-fields {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.date-custom-fields[hidden] {
+  display: none;
+}
+
+.date-custom-fields label {
+  display: grid;
+  gap: 5px;
+  color: var(--secondary-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.date-custom-fields input {
+  min-height: 40px;
+  padding: 0 10px;
+}
+
+@media (max-width: 900px) {
+  .app-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .app-header-controls,
+  .app-header-actions,
+  .app-date-selector {
+    width: 100%;
+  }
+
+  .app-header-controls,
+  .app-header-actions {
+    justify-content: flex-start;
+  }
+
+  .app-date-selector {
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+  }
+
+  .date-selector-main {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .date-selector-main span {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 560px) {
+  .date-custom-fields {
+    grid-template-columns: 1fr;
+  }
+}

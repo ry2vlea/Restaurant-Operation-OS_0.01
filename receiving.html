@@ -1,50 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Receiving | Restaurant OS</title>
-  <link rel="stylesheet" href="css/app.css">
-</head>
-<body class="standalone-workflow-body">
-  <main class="main inventory-main inventory-workflow standalone-main">
-    <header class="topbar workflow-topbar">
-      <div>
-        <button class="back-button" onclick="location.href='inventory.html'">← Inventory</button>
-        <p class="eyebrow">INVENTORY CONTROL</p>
-        <h1>Receive Delivery</h1>
-        <p>Receive product in the packaging units your team actually sees.</p>
-      </div>
-    </header>
-
-    <section class="inventory-form-panel">
-      <form id="receivingForm">
-        <div class="inventory-form-section">
-          <div class="inventory-form-heading"><h2>Delivery</h2><p>Document source and receiving context.</p></div>
-          <div class="form-grid">
-            <label>Vendor<input name="vendor" placeholder="US Foods"></label>
-            <label>Invoice Number<input name="invoiceNumber"></label>
-            <label>Item<select name="itemId" id="receiveItem"></select></label>
-            <label>Location<select name="locationId" id="receiveLocation"></select></label>
-            <label>Ordered Quantity<input name="orderedQuantity" type="number" min="0" step="0.01" value="0"></label>
-            <label>Ordered Unit<select name="orderedUnitId" id="orderedUnit"></select></label>
-            <label>Purchase Unit Cost <span class="optional-label">optional</span><input name="purchaseUnitCost" type="number" min="0" step="0.01" placeholder="Update current cost"></label>
-            <label class="full-width">Notes<textarea name="notes" rows="3"></textarea></label>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Receiving | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body class="standalone-workflow-body">
+    <main class="main inventory-main inventory-workflow standalone-main">
+      <header class="topbar workflow-topbar">
+        <div>
+          <button class="back-button" onclick="location.href='inventory.html'">← Inventory</button>
+          <p class="eyebrow">INVENTORY CONTROL</p>
+          <h1>Receive Delivery</h1>
+          <p>Receive product in the packaging units your team actually sees.</p>
+        </div>
+      </header>
+      <section class="inventory-form-panel">
+        <form id="receivingForm">
+          <div class="inventory-form-section">
+            <div class="inventory-form-heading">
+              <h2>Delivery</h2>
+              <p>Document source and receiving context.</p>
+            </div>
+            <div class="form-grid">
+              <label>
+                Vendor
+                <input name="vendor" placeholder="US Foods">
+              </label>
+              <label>
+                Invoice Number
+                <input name="invoiceNumber">
+              </label>
+              <label>
+                Item
+                <select name="itemId" id="receiveItem"></select>
+              </label>
+              <label>
+                Location
+                <select name="locationId" id="receiveLocation"></select>
+              </label>
+              <label>
+                Ordered Quantity
+                <input name="orderedQuantity" type="number" min="0" step="0.01" value="0">
+              </label>
+              <label>
+                Ordered Unit
+                <select name="orderedUnitId" id="orderedUnit"></select>
+              </label>
+              <label>
+                Purchase Unit Cost
+                <span class="optional-label">optional</span>
+                <input name="purchaseUnitCost" type="number" min="0" step="0.01" placeholder="Update current cost">
+              </label>
+              <label class="full-width">
+                Notes
+                <textarea name="notes" rows="3"></textarea>
+              </label>
+            </div>
           </div>
-        </div>
-
-        <div class="inventory-form-section">
-          <div class="inventory-form-heading"><h2>Received Quantity</h2><p>Enter full cases plus partial packs/trays/each when needed.</p></div>
-          <div id="receiveQuantityFields" class="physical-entry-grid"></div>
-          <div class="physical-entry-total" id="receiveEquivalent"></div>
-        </div>
-
-        <div class="modal-actions"><button class="primary-button" id="completeReceivingButton" type="submit">Complete Receiving</button></div>
-      </form>
-    </section>
-  </main>
-  <script src="js/inventory-service.js"></script>
-  <script src="js/components/ui-feedback.js"></script>
-  <script src="js/receiving.js"></script>
-</body>
+          <div class="inventory-form-section">
+            <div class="inventory-form-heading">
+              <h2>Received Quantity</h2>
+              <p>Enter full cases plus partial packs/trays/each when needed.</p>
+            </div>
+            <div id="receiveQuantityFields" class="physical-entry-grid"></div>
+            <div class="physical-entry-total" id="receiveEquivalent"></div>
+          </div>
+          <div class="modal-actions">
+            <button class="primary-button" id="completeReceivingButton" type="submit">Complete Receiving</button>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script src="js/inventory-service.js"></script>
+    <script src="js/components/ui-feedback.js"></script>
+    <script src="js/receiving.js"></script>
+  </body>
 </html>

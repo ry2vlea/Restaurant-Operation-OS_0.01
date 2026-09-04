@@ -1,1 +1,33 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Inventory Count | Restaurant OS</title><link rel="stylesheet" href="css/app.css"></head><body class="standalone-workflow-body"><main class="main inventory-main inventory-workflow standalone-main"><header class="topbar"><div><button class="back-button" onclick="location.href='inventory.html'">← Inventory</button><h1>Inventory Count</h1><p>Record physical quantities without changing stock until a correction is approved.</p></div><span class="status shift-status">IN PROGRESS</span></header><section class="shift-progress-card"><p class="eyebrow">COUNT WORKFLOW</p><h2 id="countProgress">0 / 0 items counted</h2><div class="progress"><div id="countBar" class="progress-bar" style="width:0%"></div></div></section><section id="countForm"></section><section id="countReview" hidden></section></main><script src="js/inventory-service.js"></script><script src="js/components/ui-feedback.js"></script><script src="js/inventory-count.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Inventory Count | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body class="standalone-workflow-body">
+    <main class="main inventory-main inventory-workflow standalone-main">
+      <header class="topbar">
+        <div>
+          <button class="back-button" onclick="location.href='inventory.html'">← Inventory</button>
+          <h1>Inventory Count</h1>
+          <p>Record physical quantities without changing stock until a correction is approved.</p>
+        </div>
+        <span class="status shift-status">IN PROGRESS</span>
+      </header>
+      <section class="shift-progress-card">
+        <p class="eyebrow">COUNT WORKFLOW</p>
+        <h2 id="countProgress">0 / 0 items counted</h2>
+        <div class="progress">
+          <div id="countBar" class="progress-bar" style="width:0%"></div>
+        </div>
+      </section>
+      <section id="countForm"></section>
+      <section id="countReview" hidden></section>
+    </main>
+    <script src="js/inventory-service.js"></script>
+    <script src="js/components/ui-feedback.js"></script>
+    <script src="js/inventory-count.js"></script>
+  </body>
+</html>

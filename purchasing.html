@@ -1,1 +1,38 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Purchasing | Restaurant OS</title><link rel="stylesheet" href="css/app.css"></head><body><main class="main recipe-main"><header class="topbar"><div><button class="back-button" onclick="location.href='index.html'">← Dashboard</button><p class="eyebrow">PURCHASING</p><h1>Purchasing</h1><p>Suggested orders based on current stock and par levels.</p></div><button class="primary-button" id="createSuggestedPo">Create Suggested PO</button></header><section id="purchasingMetrics" class="inventory-metrics"></section><section class="recipe-panel"><h2>Suggested Order</h2><div id="suggestedOrder" class="inventory-table"></div></section><section class="recipe-panel"><h2>Purchase Orders</h2><p class="muted-text">Click an ordered PO to receive it into inventory.</p><div id="poList" class="inventory-table"></div></section></main><script src="js/inventory-service.js"></script><script src="js/analytics-context.js"></script><script src="js/activity-service.js"></script><script src="js/purchasing-service.js"></script><script src="js/components/ui-feedback.js"></script><script src="js/purchasing.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Purchasing | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <main class="main recipe-main">
+      <header class="topbar">
+        <div>
+          <button class="back-button" onclick="location.href='index.html'">← Dashboard</button>
+          <p class="eyebrow">PURCHASING</p>
+          <h1>Purchasing</h1>
+          <p>Suggested orders based on current stock and par levels.</p>
+        </div>
+        <button class="primary-button" id="createSuggestedPo">Create Suggested PO</button>
+      </header>
+      <section id="purchasingMetrics" class="inventory-metrics"></section>
+      <section class="recipe-panel">
+        <h2>Suggested Order</h2>
+        <div id="suggestedOrder" class="inventory-table"></div>
+      </section>
+      <section class="recipe-panel">
+        <h2>Purchase Orders</h2>
+        <p class="muted-text">Click an ordered PO to receive it into inventory.</p>
+        <div id="poList" class="inventory-table"></div>
+      </section>
+    </main>
+    <script src="js/inventory-service.js"></script>
+    <script src="js/analytics-context.js"></script>
+    <script src="js/activity-service.js"></script>
+    <script src="js/purchasing-service.js"></script>
+    <script src="js/components/ui-feedback.js"></script>
+    <script src="js/purchasing.js"></script>
+  </body>
+</html>

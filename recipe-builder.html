@@ -1,1 +1,79 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recipe Builder | Restaurant OS</title><link rel="stylesheet" href="css/app.css"></head><body><main class="main recipe-main"><header class="topbar"><div><button class="back-button" onclick="location.href='recipes.html'">← Recipes</button><p class="eyebrow">RECIPE BUILDER</p><h1 id="builderTitle">New Recipe</h1><p>Connect real Inventory Items and see cost update live.</p></div></header><form id="recipeBuilder" class="recipe-builder"><section class="recipe-panel"><h2>Recipe Information</h2><div class="form-grid"><label>Name<input name="name" required></label><label>Type<select name="recipeType"><option value="MENU">Menu Recipe</option><option value="PREP">Prep Recipe</option></select></label><label>Yield Quantity<input name="yieldQuantity" type="number" min="0.01" step="0.01" value="1" required></label><label>Yield Unit<select name="yieldUnitId" id="yieldUnit"></select></label><label>Menu Price<input name="sellingPrice" type="number" min="0" step="0.01"></label><label>Produced Inventory Item<select name="producedInventoryItemId" id="producedItem"><option value="">None</option></select></label></div></section><section class="recipe-panel"><div class="section-header"><div><h2>Ingredients</h2><p>Quantities normalize through Inventory's base unit engine.</p></div><button type="button" class="secondary-button" id="addIngredient">+ Add Ingredient</button></div><div id="ingredients"></div><div class="recipe-total"><span>Recipe Cost</span><strong id="recipeCost">$0.00</strong></div></section><div class="modal-actions"><button type="button" class="secondary-button" onclick="location.href='recipes.html'">Cancel</button><button class="primary-button" type="submit">Save Recipe</button></div></form></main><script src="js/inventory-service.js"></script><script src="js/recipe-service.js"></script><script src="js/components/ui-feedback.js"></script><script src="js/recipe-builder.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Recipe Builder | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <main class="main recipe-main">
+      <header class="topbar">
+        <div>
+          <button class="back-button" onclick="location.href='recipes.html'">← Recipes</button>
+          <p class="eyebrow">RECIPE BUILDER</p>
+          <h1 id="builderTitle">New Recipe</h1>
+          <p>Connect real Inventory Items and see cost update live.</p>
+        </div>
+      </header>
+      <form id="recipeBuilder" class="recipe-builder">
+        <section class="recipe-panel">
+          <h2>Recipe Information</h2>
+          <div class="form-grid">
+            <label>
+              Name
+              <input name="name" required>
+            </label>
+            <label>
+              Type
+              <select name="recipeType">
+                <option value="MENU">Menu Recipe</option>
+                <option value="PREP">Prep Recipe</option>
+              </select>
+            </label>
+            <label>
+              Yield Quantity
+              <input name="yieldQuantity" type="number" min="0.01" step="0.01" value="1" required>
+            </label>
+            <label>
+              Yield Unit
+              <select name="yieldUnitId" id="yieldUnit"></select>
+            </label>
+            <label>
+              Menu Price
+              <input name="sellingPrice" type="number" min="0" step="0.01">
+            </label>
+            <label>
+              Produced Inventory Item
+              <select name="producedInventoryItemId" id="producedItem">
+                <option value="">None</option>
+              </select>
+            </label>
+          </div>
+        </section>
+        <section class="recipe-panel">
+          <div class="section-header">
+            <div>
+              <h2>Ingredients</h2>
+              <p>Quantities normalize through Inventory's base unit engine.</p>
+            </div>
+            <button type="button" class="secondary-button" id="addIngredient">+ Add Ingredient</button>
+          </div>
+          <div id="ingredients"></div>
+          <div class="recipe-total">
+            <span>Recipe Cost</span>
+            <strong id="recipeCost">$0.00</strong>
+          </div>
+        </section>
+        <div class="modal-actions">
+          <button type="button" class="secondary-button" onclick="location.href='recipes.html'">Cancel</button>
+          <button class="primary-button" type="submit">Save Recipe</button>
+        </div>
+      </form>
+    </main>
+    <script src="js/inventory-service.js"></script>
+    <script src="js/recipe-service.js"></script>
+    <script src="js/components/ui-feedback.js"></script>
+    <script src="js/recipe-builder.js"></script>
+  </body>
+</html>

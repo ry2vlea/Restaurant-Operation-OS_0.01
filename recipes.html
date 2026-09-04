@@ -1,1 +1,31 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recipes | Restaurant OS</title><link rel="stylesheet" href="css/app.css"></head><body><main class="main recipe-main"><header class="topbar"><div><button class="back-button" onclick="location.href='index.html'">← Dashboard</button><p class="eyebrow">MENU & RECIPES</p><h1>Recipes</h1><p>Define ingredients, yields and current recipe cost.</p></div><div class="inventory-actions"><button class="secondary-button" onclick="location.href='menu.html'">Menu</button><button class="secondary-button" onclick="location.href='production.html'">Production</button><button class="primary-button" id="newRecipe">+ New Recipe</button></div></header><section id="recipeList" class="recipe-list"></section></main><script src="js/inventory-service.js"></script><script src="js/recipe-service.js"></script><script src="js/components/ui-feedback.js"></script><script src="js/recipes.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Recipes | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <main class="main recipe-main">
+      <header class="topbar">
+        <div>
+          <button class="back-button" onclick="location.href='index.html'">← Dashboard</button>
+          <p class="eyebrow">MENU & RECIPES</p>
+          <h1>Recipes</h1>
+          <p>Define ingredients, yields and current recipe cost.</p>
+        </div>
+        <div class="inventory-actions">
+          <button class="secondary-button" onclick="location.href='menu.html'">Menu</button>
+          <button class="secondary-button" onclick="location.href='production.html'">Production</button>
+          <button class="primary-button" id="newRecipe">+ New Recipe</button>
+        </div>
+      </header>
+      <section id="recipeList" class="recipe-list"></section>
+    </main>
+    <script src="js/inventory-service.js"></script>
+    <script src="js/recipe-service.js"></script>
+    <script src="js/components/ui-feedback.js"></script>
+    <script src="js/recipes.js"></script>
+  </body>
+</html>

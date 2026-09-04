@@ -1,50 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Issues | Restaurant OS</title>
-  <link rel="stylesheet" href="css/app.css">
-</head>
-<body>
-  <aside class="sidebar">
-    <div class="brand"><h2>Restaurant OS</h2><p>Harbor Grill</p></div>
-    <nav>
-      <p class="nav-section">COMMAND CENTER</p>
-      <button class="nav-item" onclick="window.location.href='index.html'">Dashboard</button>
-      <button class="nav-item">Today</button>
-      <p class="nav-section">OPERATIONS</p>
-      <button class="nav-item" onclick="window.location.href='opening.html'">Shifts</button>
-      <button class="nav-item" onclick="window.location.href='tasks.html'">Tasks</button>
-      <button class="nav-item active" onclick="window.location.href='issues.html'">Issues</button>
-      <button class="nav-item">Incidents</button>
-      <p class="nav-section">INVENTORY</p>
-      <button class="nav-item">Inventory</button><button class="nav-item">Receiving</button><button class="nav-item">Waste</button><button class="nav-item">Recipes</button>
-      <p class="nav-section">PERFORMANCE</p>
-      <button class="nav-item">Daily Report</button><button class="nav-item">Reports</button>
-    </nav>
-  </aside>
-  <main class="main">
-    <header class="topbar issue-page-header">
-      <div><h1>Issues</h1><p>Track operational problems and follow-up.</p></div>
-      <button class="primary-button" id="reportIssueButton">+ Report Issue</button>
-    </header>
-    <section class="issue-summary-grid" id="issueSummary"></section>
-    <section class="issue-toolbar">
-      <label>Search<input id="issueSearch" type="search" placeholder="Search issues"></label>
-      <label>Status<select id="statusFilter"><option value="">All statuses</option><option>OPEN</option><option>ACKNOWLEDGED</option><option>IN_PROGRESS</option><option>WAITING</option><option>RESOLVED</option><option>CLOSED</option></select></label>
-      <label>Priority<select id="priorityFilter"><option value="">All priorities</option><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></label>
-      <label>Category<select id="categoryFilter"><option value="">All categories</option><option>STAFFING</option><option>INVENTORY</option><option>EQUIPMENT</option><option>GUEST</option><option>FACILITY</option><option>OPERATIONS</option><option>VENDOR</option><option>OTHER</option></select></label>
-      <label>Assigned To<select id="assigneeFilter"><option value="">All managers</option><option>Jordan Lee</option><option>Alex Rivera</option><option>Mia Torres</option></select></label>
-    </section>
-    <section><div class="section-header"><h2>Issue Register</h2><span id="issueResultCount" class="muted-text"></span></div><div id="issueList" class="issue-list"></div></section>
-  </main>
-  <script src="js/issues.js"></script>
-  <script src="js/tasks.js"></script>
-  <script src="js/components/issue-form.js"></script>
-  <script src="js/components/task-form.js"></script>
-  <script src="js/components/ui-feedback.js"></script>
-  <script src="js/components/app-shell.js"></script>
-  <script src="js/issues-page.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issues | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <h2>Restaurant OS</h2>
+        <p>Harbor Grill</p>
+      </div>
+      <nav>
+        <p class="nav-section">COMMAND CENTER</p>
+        <button class="nav-item" onclick="window.location.href='index.html'">Dashboard</button>
+        <button class="nav-item">Today</button>
+        <p class="nav-section">OPERATIONS</p>
+        <button class="nav-item" onclick="window.location.href='opening.html'">Shifts</button>
+        <button class="nav-item" onclick="window.location.href='tasks.html'">Tasks</button>
+        <button class="nav-item active" onclick="window.location.href='issues.html'">Issues</button>
+        <button class="nav-item">Incidents</button>
+        <p class="nav-section">INVENTORY</p>
+        <button class="nav-item">Inventory</button>
+        <button class="nav-item">Receiving</button>
+        <button class="nav-item">Waste</button>
+        <button class="nav-item">Recipes</button>
+        <p class="nav-section">PERFORMANCE</p>
+        <button class="nav-item">Daily Report</button>
+        <button class="nav-item">Reports</button>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar issue-page-header">
+        <div>
+          <h1>Issues</h1>
+          <p>Track operational problems and follow-up.</p>
+        </div>
+        <button class="primary-button" id="reportIssueButton">+ Report Issue</button>
+      </header>
+      <section class="issue-summary-grid" id="issueSummary"></section>
+      <section class="issue-toolbar">
+        <label>
+          Search
+          <input id="issueSearch" type="search" placeholder="Search issues">
+        </label>
+        <label>
+          Status
+          <select id="statusFilter">
+            <option value="">All statuses</option>
+            <option>OPEN</option>
+            <option>ACKNOWLEDGED</option>
+            <option>IN_PROGRESS</option>
+            <option>WAITING</option>
+            <option>RESOLVED</option>
+            <option>CLOSED</option>
+          </select>
+        </label>
+        <label>
+          Priority
+          <select id="priorityFilter">
+            <option value="">All priorities</option>
+            <option>LOW</option>
+            <option>MEDIUM</option>
+            <option>HIGH</option>
+            <option>CRITICAL</option>
+          </select>
+        </label>
+        <label>
+          Category
+          <select id="categoryFilter">
+            <option value="">All categories</option>
+            <option>STAFFING</option>
+            <option>INVENTORY</option>
+            <option>EQUIPMENT</option>
+            <option>GUEST</option>
+            <option>FACILITY</option>
+            <option>OPERATIONS</option>
+            <option>VENDOR</option>
+            <option>OTHER</option>
+          </select>
+        </label>
+        <label>
+          Assigned To
+          <select id="assigneeFilter">
+            <option value="">All managers</option>
+            <option>Jordan Lee</option>
+            <option>Alex Rivera</option>
+            <option>Mia Torres</option>
+          </select>
+        </label>
+      </section>
+      <section>
+        <div class="section-header">
+          <h2>Issue Register</h2>
+          <span id="issueResultCount" class="muted-text"></span>
+        </div>
+        <div id="issueList" class="issue-list"></div>
+      </section>
+    </main>
+    <script src="js/issues.js"></script>
+    <script src="js/tasks.js"></script>
+    <script src="js/components/issue-form.js"></script>
+    <script src="js/components/task-form.js"></script>
+    <script src="js/components/ui-feedback.js"></script>
+    <script src="js/components/app-shell.js"></script>
+    <script src="js/issues-page.js"></script>
+  </body>
 </html>

@@ -1,1 +1,66 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Mid-Shift | Restaurant OS</title><link rel="stylesheet" href="css/app.css"></head><body><aside class="sidebar"><div class="brand"><h2>Restaurant OS</h2><p>Harbor Grill</p></div><nav><p class="nav-section">COMMAND CENTER</p><button class="nav-item" onclick="window.location.href='index.html'">Dashboard</button><button class="nav-item">Today</button><p class="nav-section">OPERATIONS</p><button class="nav-item active">Shifts</button><button class="nav-item" onclick="window.location.href='tasks.html'">Tasks</button><button class="nav-item" onclick="window.location.href='issues.html'">Issues</button><button class="nav-item">Incidents</button><p class="nav-section">INVENTORY</p><button class="nav-item">Inventory</button><button class="nav-item">Receiving</button><button class="nav-item">Waste</button><button class="nav-item">Recipes</button><p class="nav-section">PERFORMANCE</p><button class="nav-item">Daily Report</button><button class="nav-item">Reports</button></nav></aside><main class="main"><header class="topbar"><div><button class="back-button" onclick="window.location.href='index.html'">← Dashboard</button><h1>Mid-Shift</h1><p id="shiftInformation">Preparing shift...</p></div><span class="status shift-status" id="shiftStatus">In Progress</span></header><section class="shift-progress-card"><p class="eyebrow">SHIFT PROGRESS</p><h2 id="progressText">0 / 0 tasks complete</h2><div class="progress"><div class="progress-bar" id="openingProgressBar" style="width:0%"></div></div><strong id="progressPercentage">0%</strong></section><section id="liveCounts" class="live-counts"></section><section id="shiftChecklist"></section><section class="shift-footer"><button class="secondary-button" id="createTaskButton">Create Task</button><button class="primary-button" id="completeShiftButton">Complete Mid-Shift</button></section></main><script src="js/issues.js"></script><script src="js/tasks.js"></script><script src="js/components/issue-form.js"></script><script src="js/components/task-form.js"></script><script src="js/shift-service.js"></script><script src="js/mid-shift.js"></script><script src="js/shift-page.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mid-Shift | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <h2>Restaurant OS</h2>
+        <p>Harbor Grill</p>
+      </div>
+      <nav>
+        <p class="nav-section">COMMAND CENTER</p>
+        <button class="nav-item" onclick="window.location.href='index.html'">Dashboard</button>
+        <button class="nav-item">Today</button>
+        <p class="nav-section">OPERATIONS</p>
+        <button class="nav-item active">Shifts</button>
+        <button class="nav-item" onclick="window.location.href='tasks.html'">Tasks</button>
+        <button class="nav-item" onclick="window.location.href='issues.html'">Issues</button>
+        <button class="nav-item">Incidents</button>
+        <p class="nav-section">INVENTORY</p>
+        <button class="nav-item">Inventory</button>
+        <button class="nav-item">Receiving</button>
+        <button class="nav-item">Waste</button>
+        <button class="nav-item">Recipes</button>
+        <p class="nav-section">PERFORMANCE</p>
+        <button class="nav-item">Daily Report</button>
+        <button class="nav-item">Reports</button>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <button class="back-button" onclick="window.location.href='index.html'">← Dashboard</button>
+          <h1>Mid-Shift</h1>
+          <p id="shiftInformation">Preparing shift...</p>
+        </div>
+        <span class="status shift-status" id="shiftStatus">In Progress</span>
+      </header>
+      <section class="shift-progress-card">
+        <p class="eyebrow">SHIFT PROGRESS</p>
+        <h2 id="progressText">0 / 0 tasks complete</h2>
+        <div class="progress">
+          <div class="progress-bar" id="openingProgressBar" style="width:0%"></div>
+        </div>
+        <strong id="progressPercentage">0%</strong>
+      </section>
+      <section id="liveCounts" class="live-counts"></section>
+      <section id="shiftChecklist"></section>
+      <section class="shift-footer">
+        <button class="secondary-button" id="createTaskButton">Create Task</button>
+        <button class="primary-button" id="completeShiftButton">Complete Mid-Shift</button>
+      </section>
+    </main>
+    <script src="js/issues.js"></script>
+    <script src="js/tasks.js"></script>
+    <script src="js/components/issue-form.js"></script>
+    <script src="js/components/task-form.js"></script>
+    <script src="js/shift-service.js"></script>
+    <script src="js/mid-shift.js"></script>
+    <script src="js/shift-page.js"></script>
+  </body>
+</html>

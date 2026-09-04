@@ -117,6 +117,15 @@
     return calculate(counts[1].id, counts[0].id);
   }
 
+  function calculateForRange(startDate, endDate) {
+    const counts = AnalyticsContext.build().counts
+      .filter((count) => count.status === "COMPLETED")
+      .filter((count) => (!startDate || count.date >= startDate) && (!endDate || count.date <= endDate))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    if (counts.length < 2) return { status: "INSUFFICIENT_DATA", rows: [], totals: summary([]), start: counts[0], end: counts[counts.length - 1] };
+    return calculate(counts[0].id, counts[counts.length - 1].id);
+  }
+
   function reviewVariance(id, changes) {
     const reviews = readReviews();
     const existing = reviews.find((review) => review.id === id);
@@ -133,5 +142,5 @@
     return updated;
   }
 
-  window.VarianceService = { calculate, calculateLatest, latestCompletedCounts, reviewVariance };
+  window.VarianceService = { calculate, calculateLatest, calculateForRange, latestCompletedCounts, reviewVariance };
 })();

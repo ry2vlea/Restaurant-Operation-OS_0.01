@@ -1,46 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Waste | Restaurant OS</title>
-  <link rel="stylesheet" href="css/app.css">
-</head>
-<body class="standalone-workflow-body">
-  <main class="main inventory-main inventory-workflow standalone-main">
-    <header class="topbar workflow-topbar">
-      <div>
-        <button class="back-button" onclick="location.href='inventory.html'">← Inventory</button>
-        <p class="eyebrow">INVENTORY CONTROL</p>
-        <h1>Record Waste</h1>
-        <p>Document physical waste and create the corresponding traceable stock movement.</p>
-      </div>
-    </header>
-
-    <section class="inventory-form-panel">
-      <form id="wasteForm">
-        <div class="form-grid">
-          <label>Item<select name="itemId" id="wasteItem"></select></label>
-          <label>Location<select name="locationId" id="wasteLocation"></select></label>
-          <label>Reason<select name="reason"><option value="OVERPRODUCTION">Overproduction</option><option value="QUALITY">Quality</option><option value="EXPIRED_HOLD_TIME">Expired / Hold Time</option><option value="DROPPED">Dropped</option><option value="DAMAGED">Damaged</option><option value="INCORRECT_PREPARATION">Incorrect Preparation</option><option value="GUEST_RETURN">Guest Return</option><option value="OTHER">Other</option></select></label>
-          <label class="full-width">Notes<textarea name="notes" rows="3"></textarea></label>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Waste | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/app-header.css">
+  </head>
+  <body class="standalone-workflow-body">
+    <main class="main inventory-main inventory-workflow standalone-main">
+      <div id="appHeader"></div>
+      <section class="inventory-form-panel">
+        <form id="wasteForm">
+          <div class="form-grid">
+            <label>
+              Item
+              <select name="itemId" id="wasteItem"></select>
+            </label>
+            <label>
+              Location
+              <select name="locationId" id="wasteLocation"></select>
+            </label>
+            <label>
+              Reason
+              <select name="reason">
+                <option value="OVERPRODUCTION">Overproduction</option>
+                <option value="QUALITY">Quality</option>
+                <option value="EXPIRED_HOLD_TIME">Expired / Hold Time</option>
+                <option value="DROPPED">Dropped</option>
+                <option value="DAMAGED">Damaged</option>
+                <option value="INCORRECT_PREPARATION">Incorrect Preparation</option>
+                <option value="GUEST_RETURN">Guest Return</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </label>
+            <label class="full-width">
+              Notes
+              <textarea name="notes" rows="3"></textarea>
+            </label>
+          </div>
+          <div class="inventory-form-section compact-section">
+            <div class="inventory-form-heading">
+              <h2>Waste Quantity</h2>
+              <p>Use cases, packs/trays and base units as needed.</p>
+            </div>
+            <div id="wasteQuantityFields" class="physical-entry-grid"></div>
+            <div id="wasteEquivalent" class="physical-entry-total"></div>
+          </div>
+          <div class="modal-actions">
+            <button class="primary-button" id="saveWasteButton" type="submit">Save Waste</button>
+          </div>
+        </form>
+      </section>
+      <section class="inventory-history">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">TODAY</p>
+            <h2>Waste Log</h2>
+          </div>
+          <span id="wasteTotal" class="muted-text"></span>
         </div>
-        <div class="inventory-form-section compact-section">
-          <div class="inventory-form-heading"><h2>Waste Quantity</h2><p>Use cases, packs/trays and base units as needed.</p></div>
-          <div id="wasteQuantityFields" class="physical-entry-grid"></div>
-          <div id="wasteEquivalent" class="physical-entry-total"></div>
-        </div>
-        <div class="modal-actions"><button class="primary-button" id="saveWasteButton" type="submit">Save Waste</button></div>
-      </form>
-    </section>
-
-    <section class="inventory-history">
-      <div class="section-header"><div><p class="eyebrow">TODAY</p><h2>Waste Log</h2></div><span id="wasteTotal" class="muted-text"></span></div>
-      <div id="wasteList" class="movement-list"></div>
-    </section>
-  </main>
-  <script src="js/inventory-service.js"></script>
-  <script src="js/components/ui-feedback.js"></script>
-  <script src="js/waste.js"></script>
-</body>
+        <div id="wasteList" class="movement-list"></div>
+      </section>
+    </main>
+    <script src="js/inventory-service.js"></script>
+    <script src="js/components/ui-feedback.js"></script>
+    <script src="js/components/app-header.js"></script>
+    <script>
+      AppHeader.init({
+        section: "INVENTORY CONTROL",
+        title: "Record Waste",
+        description: "Document physical waste and create the corresponding traceable stock movement.",
+        backHref: "inventory.html",
+        backLabel: "Inventory",
+        showDateSelector: true
+      });
+    </script>
+    <script src="js/waste.js"></script>
+  </body>
 </html>

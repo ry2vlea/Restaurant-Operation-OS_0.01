@@ -1,1 +1,51 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Inventory Variance | Restaurant OS</title><link rel="stylesheet" href="css/app.css"></head><body><main class="main recipe-main"><header class="topbar"><div><button class="back-button" onclick="location.href='index.html'">← Dashboard</button><p class="eyebrow">INVENTORY VARIANCE</p><h1>Inventory Variance</h1><p id="variancePeriod">Requires two completed counts</p></div><div class="inventory-actions"><button class="secondary-button" onclick="location.href='inventory-count.html'">Counts</button><button class="secondary-button" onclick="location.href='food-cost.html'">Food Cost</button></div></header><section id="varianceMetrics" class="inventory-metrics"></section><section class="recipe-panel"><div class="section-header"><h2>Variance Register</h2><span class="muted-text">Click a variance to mark under review</span></div><div id="varianceApp" class="inventory-table"></div></section></main><script src="js/inventory-service.js"></script><script src="js/recipe-service.js"></script><script src="js/menu-service.js"></script><script src="js/theoretical-usage-service.js"></script><script src="js/settings-service.js"></script><script src="js/analytics-context.js"></script><script src="js/activity-service.js"></script><script src="js/variance-service.js"></script><script src="js/components/ui-feedback.js"></script><script src="js/inventory-variance.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Inventory Variance | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/app-header.css">
+  </head>
+  <body>
+    <main class="main recipe-main">
+      <template id="appHeaderActions">
+        <div class="inventory-actions">
+          <button class="secondary-button" onclick="location.href='inventory-count.html'">Counts</button>
+          <button class="secondary-button" onclick="location.href='food-cost.html'">Food Cost</button>
+        </div>
+      </template>
+      <div id="appHeader"></div>
+      <p id="variancePeriod" class="muted-text">Requires two completed counts</p>
+      <section id="varianceMetrics" class="inventory-metrics"></section>
+      <section class="recipe-panel">
+        <div class="section-header">
+          <h2>Variance Register</h2>
+          <span class="muted-text">Click a variance to mark under review</span>
+        </div>
+        <div id="varianceApp" class="inventory-table"></div>
+      </section>
+    </main>
+    <script src="js/inventory-service.js"></script>
+    <script src="js/recipe-service.js"></script>
+    <script src="js/menu-service.js"></script>
+    <script src="js/theoretical-usage-service.js"></script>
+    <script src="js/settings-service.js"></script>
+    <script src="js/analytics-context.js"></script>
+    <script src="js/activity-service.js"></script>
+    <script src="js/variance-service.js"></script>
+    <script src="js/components/ui-feedback.js"></script>
+    <script src="js/components/app-header.js"></script>
+    <script>
+      AppHeader.init({
+        section: "INVENTORY VARIANCE",
+        title: "Inventory Variance",
+        description: "Historical variance analysis for the selected reporting period.",
+        backHref: "index.html",
+        backLabel: "Dashboard",
+        showDateSelector: true
+      });
+    </script>
+    <script src="js/inventory-variance.js"></script>
+  </body>
+</html>

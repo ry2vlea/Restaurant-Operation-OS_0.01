@@ -1,1 +1,55 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Production | Restaurant OS</title><link rel="stylesheet" href="css/app.css"></head><body><main class="main recipe-main"><header class="topbar"><div><button class="back-button" onclick="location.href='recipes.html'">← Recipes</button><p class="eyebrow">MENU & RECIPES</p><h1>Production</h1><p>Produce Prep Recipes through traceable Inventory Movements.</p></div></header><section class="recipe-panel"><form id="productionForm"><div class="form-grid"><label>Prep Recipe<select name="recipeId" id="productionRecipe"></select></label><label>Batch Multiplier<input name="batchMultiplier" type="number" min="0.01" step="0.01" value="1"></label><label>Actual Yield<input name="actualYield" type="number" min="0.01" step="0.01" required></label><label>Destination<select name="destinationLocationId" id="productionLocation"></select></label></div><button class="primary-button" type="submit">Complete Production</button></form></section><section><div class="section-header"><h2>Completed Batches</h2></div><div id="productionList" class="recipe-list"></div></section></main><script src="js/inventory-service.js"></script><script src="js/recipe-service.js"></script><script src="js/production-service.js"></script><script src="js/components/ui-feedback.js"></script><script src="js/production.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Production | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <main class="main recipe-main">
+      <header class="topbar">
+        <div>
+          <button class="back-button" onclick="location.href='recipes.html'">← Recipes</button>
+          <p class="eyebrow">MENU & RECIPES</p>
+          <h1>Production</h1>
+          <p>Produce Prep Recipes through traceable Inventory Movements.</p>
+        </div>
+      </header>
+      <section class="recipe-panel">
+        <form id="productionForm">
+          <div class="form-grid">
+            <label>
+              Prep Recipe
+              <select name="recipeId" id="productionRecipe"></select>
+            </label>
+            <label>
+              Batch Multiplier
+              <input name="batchMultiplier" type="number" min="0.01" step="0.01" value="1">
+            </label>
+            <label>
+              Actual Yield
+              <input name="actualYield" type="number" min="0.01" step="0.01" required>
+            </label>
+            <label>
+              Destination
+              <select name="destinationLocationId" id="productionLocation"></select>
+            </label>
+          </div>
+          <button class="primary-button" type="submit">Complete Production</button>
+        </form>
+      </section>
+      <section>
+        <div class="section-header">
+          <h2>Completed Batches</h2>
+        </div>
+        <div id="productionList" class="recipe-list"></div>
+      </section>
+    </main>
+    <script src="js/inventory-service.js"></script>
+    <script src="js/recipe-service.js"></script>
+    <script src="js/production-service.js"></script>
+    <script src="js/components/ui-feedback.js"></script>
+    <script src="js/production.js"></script>
+  </body>
+</html>

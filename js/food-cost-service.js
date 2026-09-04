@@ -1,4 +1,30 @@
 (function () {
+  function datesInRange(startDate, endDate) {
+    const dates = [];
+    const current = parseDate(startDate);
+    const end = parseDate(endDate);
+    if (!current || !end) return dates;
+    while (current <= end) {
+      dates.push(formatDate(current));
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  }
+
+  function parseDate(value) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
+    if (!match) return null;
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+
+  function formatDate(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  }
+
+  function today() {
+    return formatDate(new Date());
+  }
+
   function salesFor(date) {
     const perf = window.BusinessPerformanceService?.getByDate?.(date);
     return Number(perf?.netSales || 0);
@@ -24,7 +50,7 @@
     return valueForCount(start) + purchases - valueForCount(end);
   }
 
-  function calculate(date = new Date().toISOString().slice(0, 10)) {
+  function calculate(date = today()) {
     const netSales = salesFor(date);
     const theoreticalCost = theoreticalUsageCost(date);
     const actualCost = actualCogS(date);
@@ -45,5 +71,31 @@
     };
   }
 
-  window.FoodCostService = { calculate };
+  function calculateRange(startDate = today(), endDate = startDate) {
+    const dates = datesInRange(startDate, endDate);
+    if (!dates.length) return calculate(today());
+    const daily = dates.map((date) => calculate(date));
+    const netSales = daily.reduce((total, entry) => total + Number(entry.netSales || 0), 0);
+    const theoreticalCost = daily.reduce((total, entry) => total + Number(entry.theoreticalCost || 0), 0);
+    const actualValues = daily.map((entry) => entry.actualCost).filter((value) => value != null);
+    const actualCost = actualValues.length ? actualValues.reduce((total, value) => total + Number(value || 0), 0) : null;
+    const wasteCost = daily.reduce((total, entry) => total + Number(entry.wasteCost || 0), 0);
+    const purchases = daily.reduce((total, entry) => total + Number(entry.purchases || 0), 0);
+    return {
+      startDate,
+      endDate,
+      netSales,
+      theoreticalCost,
+      theoreticalFoodCostPercent: netSales > 0 ? theoreticalCost / netSales * 100 : null,
+      actualCost,
+      actualFoodCostPercent: actualCost != null && netSales > 0 ? actualCost / netSales * 100 : null,
+      foodCostVariancePoints: actualCost != null && netSales > 0 ? actualCost / netSales * 100 - theoreticalCost / netSales * 100 : null,
+      targetFoodCostPercent: daily[0]?.targetFoodCostPercent || Number(window.SettingsService?.getSettings?.().targets?.foodCostPercent || localStorage.getItem("targetFoodCostPercent") || 30),
+      wasteCost,
+      inventoryVarianceCost: window.VarianceService?.calculateForRange?.(startDate, endDate)?.totals?.netVariance ?? window.VarianceService?.calculateLatest?.().totals?.netVariance ?? null,
+      purchases
+    };
+  }
+
+  window.FoodCostService = { calculate, calculateRange };
 })();

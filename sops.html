@@ -1,1 +1,71 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SOP Library | Restaurant OS</title><link rel="stylesheet" href="css/app.css"></head><body><main class="main recipe-main"><header class="topbar"><div><button class="back-button" onclick="location.href='index.html'">← Dashboard</button><p class="eyebrow">KNOWLEDGE LIBRARY</p><h1>SOP Library</h1><p>Searchable operating procedures and management knowledge.</p></div></header><section class="issue-toolbar"><label>Search<input id="sopSearch" type="search" placeholder="Search SOPs"></label><label>Category<select id="sopCategory"></select></label></section><section class="management-grid"><form id="sopForm" class="recipe-panel form-grid"><h2 class="full-width">New SOP</h2><label>Title<input name="title" required></label><label>Category<input name="category" value="Other"></label><label>Status<select name="status"><option>ACTIVE</option><option>DRAFT</option><option>RETIRED</option></select></label><label>Tags<input name="tags" placeholder="fryer, opening"></label><label class="full-width">Content<textarea name="content" rows="8"></textarea></label><button class="primary-button">Save SOP</button></form><section class="recipe-panel"><h2>Recently Updated</h2><div id="sopList" class="inventory-table"></div></section></section></main><script src="js/settings-service.js"></script><script src="js/analytics-context.js"></script><script src="js/activity-service.js"></script><script src="js/sop-service.js"></script><script src="js/components/ui-feedback.js"></script><script src="js/sops.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>SOP Library | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <main class="main recipe-main">
+      <header class="topbar">
+        <div>
+          <button class="back-button" onclick="location.href='index.html'">← Dashboard</button>
+          <p class="eyebrow">KNOWLEDGE LIBRARY</p>
+          <h1>SOP Library</h1>
+          <p>Searchable operating procedures and management knowledge.</p>
+        </div>
+      </header>
+      <section class="issue-toolbar">
+        <label>
+          Search
+          <input id="sopSearch" type="search" placeholder="Search SOPs">
+        </label>
+        <label>
+          Category
+          <select id="sopCategory"></select>
+        </label>
+      </section>
+      <section class="management-grid">
+        <form id="sopForm" class="recipe-panel form-grid">
+          <h2 class="full-width">New SOP</h2>
+          <label>
+            Title
+            <input name="title" required>
+          </label>
+          <label>
+            Category
+            <input name="category" value="Other">
+          </label>
+          <label>
+            Status
+            <select name="status">
+              <option>ACTIVE</option>
+              <option>DRAFT</option>
+              <option>RETIRED</option>
+            </select>
+          </label>
+          <label>
+            Tags
+            <input name="tags" placeholder="fryer, opening">
+          </label>
+          <label class="full-width">
+            Content
+            <textarea name="content" rows="8"></textarea>
+          </label>
+          <button class="primary-button">Save SOP</button>
+        </form>
+        <section class="recipe-panel">
+          <h2>Recently Updated</h2>
+          <div id="sopList" class="inventory-table"></div>
+        </section>
+      </section>
+    </main>
+    <script src="js/settings-service.js"></script>
+    <script src="js/analytics-context.js"></script>
+    <script src="js/activity-service.js"></script>
+    <script src="js/sop-service.js"></script>
+    <script src="js/components/ui-feedback.js"></script>
+    <script src="js/sops.js"></script>
+  </body>
+</html>

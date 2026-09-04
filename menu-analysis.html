@@ -1,1 +1,53 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Menu Cost Analysis | Restaurant OS</title><link rel="stylesheet" href="css/app.css"></head><body><main class="main recipe-main"><header class="topbar"><div><button class="back-button" onclick="location.href='menu.html'">← Menu</button><p class="eyebrow">MENU & RECIPES</p><h1>Menu Cost Analysis</h1><p>Review current recipe cost, contribution and operational availability.</p></div></header><section id="analysisMetrics" class="inventory-metrics"></section><section class="recipe-panel"><div class="section-header"><h2>Menu Items</h2><label>Target Food Cost %<input id="targetFoodCost" type="number" value="30" min="1" max="100"></label></div><div id="analysisList" class="inventory-table"></div></section><section class="recipe-panel"><h2>Theoretical Usage</h2><div class="form-grid"><label>Menu Item<select id="salesMenuItem"></select></label><label>Quantity Sold<input id="salesQuantity" type="number" min="0" value="0"></label><button class="primary-button" id="saveSale">Save Sales</button></div><div id="usageList" class="movement-list"></div></section></main><script src="js/inventory-service.js"></script><script src="js/recipe-service.js"></script><script src="js/menu-service.js"></script><script src="js/theoretical-usage-service.js"></script><script src="js/components/ui-feedback.js"></script><script src="js/menu-analysis.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Menu Cost Analysis | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <main class="main recipe-main">
+      <header class="topbar">
+        <div>
+          <button class="back-button" onclick="location.href='menu.html'">← Menu</button>
+          <p class="eyebrow">MENU & RECIPES</p>
+          <h1>Menu Cost Analysis</h1>
+          <p>Review current recipe cost, contribution and operational availability.</p>
+        </div>
+      </header>
+      <section id="analysisMetrics" class="inventory-metrics"></section>
+      <section class="recipe-panel">
+        <div class="section-header">
+          <h2>Menu Items</h2>
+          <label>
+            Target Food Cost %
+            <input id="targetFoodCost" type="number" value="30" min="1" max="100">
+          </label>
+        </div>
+        <div id="analysisList" class="inventory-table"></div>
+      </section>
+      <section class="recipe-panel">
+        <h2>Theoretical Usage</h2>
+        <div class="form-grid">
+          <label>
+            Menu Item
+            <select id="salesMenuItem"></select>
+          </label>
+          <label>
+            Quantity Sold
+            <input id="salesQuantity" type="number" min="0" value="0">
+          </label>
+          <button class="primary-button" id="saveSale">Save Sales</button>
+        </div>
+        <div id="usageList" class="movement-list"></div>
+      </section>
+    </main>
+    <script src="js/inventory-service.js"></script>
+    <script src="js/recipe-service.js"></script>
+    <script src="js/menu-service.js"></script>
+    <script src="js/theoretical-usage-service.js"></script>
+    <script src="js/components/ui-feedback.js"></script>
+    <script src="js/menu-analysis.js"></script>
+  </body>
+</html>

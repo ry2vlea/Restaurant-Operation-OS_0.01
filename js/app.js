@@ -18,6 +18,7 @@ const pendingTasksCard =
 
 
 function displayDate() {
+  if (!currentDate) return;
 
   const today = new Date();
 

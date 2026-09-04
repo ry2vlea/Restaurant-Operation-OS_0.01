@@ -1,8 +1,14 @@
 const varianceApp = document.getElementById("varianceApp");
 const money = (value) => value == null ? "Insufficient Data" : `$${Number(value).toFixed(2)}`;
+let selectedRange = window.AppHeader?.getRange?.() || {};
+
+document.addEventListener("ros:datechange", (event) => {
+  selectedRange = event.detail;
+  renderVariance();
+});
 
 function renderVariance() {
-  const result = VarianceService.calculateLatest();
+  const result = VarianceService.calculateForRange(selectedRange.startDate, selectedRange.endDate);
   const totals = result.totals;
   document.getElementById("varianceMetrics").innerHTML = [
     ["Net Variance", result.status === "OK" ? money(totals.netVariance) : "Insufficient Data"],

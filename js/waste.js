@@ -2,6 +2,12 @@ const wasteItem = document.getElementById("wasteItem");
 const wasteLocation = document.getElementById("wasteLocation");
 const wasteQuantityFields = document.getElementById("wasteQuantityFields");
 const wasteEquivalent = document.getElementById("wasteEquivalent");
+let selectedRange = window.AppHeader?.getRange?.() || {};
+
+document.addEventListener("ros:datechange", (event) => {
+  selectedRange = event.detail;
+  renderWaste();
+});
 
 function wasteUnits(item) {
   return [InventoryService.getPrimaryUnitId(item), item?.intermediateUnitId, item?.baseUnitId].filter((id, index, all) => id && all.indexOf(id) === index);
@@ -39,13 +45,15 @@ function updateWasteEquivalent() {
 }
 
 function renderWaste() {
-  const today = new Date().toISOString().slice(0, 10);
-  const records = InventoryService.getWasteRecords().filter((record) => record.createdAt?.slice(0, 10) === today).reverse();
+  const records = InventoryService.getWasteRecords().filter((record) => {
+    const date = record.createdAt?.slice(0, 10);
+    return (!selectedRange.startDate || date >= selectedRange.startDate) && (!selectedRange.endDate || date <= selectedRange.endDate);
+  }).reverse();
   document.getElementById("wasteTotal").textContent = `$${records.reduce((total, record) => total + Number(record.wasteCost || 0), 0).toFixed(2)} estimated cost`;
   document.getElementById("wasteList").innerHTML = records.length ? records.map((record) => {
     const item = InventoryService.getItemById(record.itemId);
     return `<div class="movement-row"><strong>${item?.name || record.itemId}<small>${record.reason.replaceAll("_", " ")}</small></strong><span>−${item ? InventoryService.formatStockBreakdown(item.id, record.baseQuantity) : record.baseQuantity}</span><span>$${Number(record.wasteCost || 0).toFixed(2)}</span><small>${record.manager} · ${new Date(record.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small></div>`;
-  }).join("") : `<div class="empty-state"><p>No waste recorded today.</p></div>`;
+  }).join("") : `<div class="empty-state"><p>No waste recorded for this period.</p></div>`;
 }
 
 wasteItem.addEventListener("change", updateWasteItem);

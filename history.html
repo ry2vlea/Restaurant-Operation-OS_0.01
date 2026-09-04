@@ -1,1 +1,36 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Operational History | Restaurant OS</title><link rel="stylesheet" href="css/app.css"></head><body><main class="main recipe-main"><header class="topbar"><div><button class="back-button" onclick="location.href='index.html'">← Dashboard</button><p class="eyebrow">OPERATIONAL HISTORY</p><h1>History</h1><p>Read-only operating archive from existing system records.</p></div></header><section class="history-layout"><div class="recipe-panel"><h2>Days</h2><div id="historyList" class="inventory-table"></div></div><div id="historyDetail"></div></section></main><script src="js/inventory-service.js"></script><script src="js/recipe-service.js"></script><script src="js/menu-service.js"></script><script src="js/analytics-context.js"></script><script src="js/settings-service.js"></script><script src="js/variance-service.js"></script><script src="js/history-service.js"></script><script src="js/history.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Operational History | Restaurant OS</title>
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <main class="main recipe-main">
+      <header class="topbar">
+        <div>
+          <button class="back-button" onclick="location.href='index.html'">← Dashboard</button>
+          <p class="eyebrow">OPERATIONAL HISTORY</p>
+          <h1>History</h1>
+          <p>Read-only operating archive from existing system records.</p>
+        </div>
+      </header>
+      <section class="history-layout">
+        <div class="recipe-panel">
+          <h2>Days</h2>
+          <div id="historyList" class="inventory-table"></div>
+        </div>
+        <div id="historyDetail"></div>
+      </section>
+    </main>
+    <script src="js/inventory-service.js"></script>
+    <script src="js/recipe-service.js"></script>
+    <script src="js/menu-service.js"></script>
+    <script src="js/analytics-context.js"></script>
+    <script src="js/settings-service.js"></script>
+    <script src="js/variance-service.js"></script>
+    <script src="js/history-service.js"></script>
+    <script src="js/history.js"></script>
+  </body>
+</html>
