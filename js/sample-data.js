@@ -57,6 +57,24 @@
     return existing || TheoreticalUsageService.saveSale(values);
   }
 
+  function ensureEquipment(values) {
+    if (!window.EquipmentService) return null;
+    const existing = EquipmentService.getEquipment().find((item) => item.name === values.name);
+    return existing || EquipmentService.createEquipment(values);
+  }
+
+  function ensureTeam(values) {
+    if (!window.TeamService) return null;
+    const existing = TeamService.getMembers().find((member) => member.name === values.name);
+    return existing || TeamService.createMember(values);
+  }
+
+  function ensureSop(values) {
+    if (!window.SopService) return null;
+    const existing = SopService.getSops().find((sop) => sop.title === values.title);
+    return existing || SopService.createSop(values);
+  }
+
   function load() {
     const items = {
       chicken: ensureItem({ name: "Chicken Breast", sku: "PROT-001", categoryId: "CAT-PROTEIN", primaryUnitId: "UNIT-CS", intermediateUnitId: "UNIT-PK", baseUnitId: "UNIT-EA", intermediateUnitsPerPrimary: 6, baseUnitsPerIntermediate: 12, defaultLocationId: "LOC-WALKIN-COOLER", purchaseUnitCost: 102.24, minimumLevel: 72, parLevel: 216, maximumLevel: 360 }),
@@ -121,6 +139,35 @@
     ensureTask({ title: "Verify cooler temperature log", description: "Check and record walk-in cooler temp before dinner rush.", category: "EQUIPMENT", priority: "HIGH", assignedTo: "Alex Rivera", dueDate: today(), dueTime: "16:30" });
     ensureTask({ title: "Prep two backup sauce tubs", description: "Build sauce par before dinner service.", category: "INVENTORY", priority: "MEDIUM", assignedTo: "Mia Torres", dueDate: today(), dueTime: "15:30", relatedInventoryItemId: items.sauce.id });
     ensureTask({ title: "Confirm tomorrow bun order", description: "Review sales trend and confirm bakery order quantity.", category: "INVENTORY", priority: "LOW", assignedTo: "Jordan Lee", dueDate: today(1), dueTime: "10:00", relatedInventoryItemId: items.buns.id });
+
+    if (window.BusinessPerformanceService && !BusinessPerformanceService.getByDate(today())) {
+      BusinessPerformanceService.saveRecord({ date: today(), netSales: 8420.18, transactions: 612, laborHours: 126.5, laborDollars: 1718.44, notes: "Sample operating day entered by demo loader." });
+    }
+
+    const fryer = ensureEquipment({ name: "Fryer #2", category: "COOKING", location: "Kitchen", manufacturer: "Pitco", model: "SG14", serialNumber: "FRY-02", status: "ATTENTION", notes: "Oil recovery slower than normal during lunch." });
+    ensureEquipment({ name: "Walk-In Cooler", category: "REFRIGERATION", location: "Back of House", manufacturer: "Kolpak", model: "KPC", serialNumber: "WIC-01", status: "ATTENTION", notes: "Temperature requires monitoring." });
+    if (fryer && window.EquipmentService && !EquipmentService.getMaintenance().some((record) => record.equipmentId === fryer.id)) {
+      EquipmentService.createMaintenance({ equipmentId: fryer.id, type: "INSPECTION", status: "SCHEDULED", scheduledDate: today(), vendor: "Metro Service", cost: 0, notes: "Inspect recovery time and thermostat." });
+    }
+
+    const jordan = ensureTeam({ name: "Jordan Lee", role: "Manager", positions: ["Manager", "Opening", "Inventory Count"], phone: "", email: "" });
+    const alex = ensureTeam({ name: "Alex Rivera", role: "Manager", positions: ["Manager", "Production", "Closing"], phone: "", email: "" });
+    const mia = ensureTeam({ name: "Mia Torres", role: "Shift Lead", positions: ["Counter", "Prep", "Drive-Thru"], phone: "", email: "" });
+    if (window.TeamService) {
+      [[jordan, "Manager", "TRAINER"], [alex, "Production", "TRAINER"], [mia, "Counter", "QUALIFIED"], [mia, "Prep", "TRAINING"]].forEach(([member, skill, status]) => member && TeamService.saveSkill(member.id, skill, status));
+    }
+
+    ensureSop({ title: "Opening Fryer Procedure", category: "Equipment", tags: "fryer, opening", content: "Verify oil level.\nConfirm fryer reaches operating temperature.\nRecord any recovery issues as Equipment Issues." });
+    ensureSop({ title: "Receiving Temperature Check", category: "Receiving", tags: "receiving, food safety", content: "Check delivery temperature before accepting product.\nRecord exceptions immediately.\nEscalate unsafe product to manager." });
+
+    if (window.PurchasingService && !PurchasingService.getPurchaseOrders().some((order) => order.notes === "Sample par replenishment")) {
+      let suggestions = PurchasingService.suggestedOrder().slice(0, 4);
+      if (!suggestions.length) {
+        const item = items.buns;
+        suggestions = [{ item, suggestedQuantity: 1, unitId: InventoryService.getPrimaryUnitId(item), estimatedCost: InventoryService.getPurchaseUnitCost(item) }];
+      }
+      if (suggestions.length) PurchasingService.createPurchaseOrder({ vendorId: "VEN-GENERAL", status: "ORDERED", expectedDeliveryDate: today(1), notes: "Sample par replenishment" }, suggestions.map((row) => ({ itemId: row.item.id, orderedQuantity: row.suggestedQuantity, unitId: row.unitId, estimatedUnitCost: InventoryService.getPurchaseUnitCost(row.item) })));
+    }
 
     localStorage.setItem(markerKey, new Date().toISOString());
     window.dispatchEvent(new CustomEvent("sample-data:loaded"));

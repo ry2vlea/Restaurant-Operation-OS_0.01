@@ -75,6 +75,11 @@ const savedManager =
     "currentManager"
   );
 
+if (window.TeamService) {
+  const managers = TeamService.managerNames();
+  managerSelect.innerHTML = managers.map((name) => `<option>${name}</option>`).join("");
+}
+
 
 if (savedManager) {
 
@@ -180,10 +185,14 @@ function updateNeedsAttention() {
   const overdueTasks = TaskService.getOverdueTasks();
   const handovers = HandoverService.getPendingHandovers();
   const inventoryItems = typeof InventoryService === "undefined" ? [] : InventoryService.getAllInventoryBalances().map((entry) => ({ ...entry, status: InventoryService.getStockStatus(entry.item, entry.quantity) })).filter(({ status }) => ["OUT_OF_STOCK", "CRITICAL"].includes(status));
+  const variance = window.VarianceService?.calculateLatest?.();
+  const equipment = window.EquipmentService?.getEquipment?.().filter((item) => item.status === "OUT_OF_SERVICE" || item.status === "ATTENTION") || [];
   const items = [
     ...issues.slice(0, 3).map((issue) => ({ type: issue.priority, title: issue.title, detail: `${issue.id} · ${issue.assignedTo} · ${issue.status.replaceAll("_", " ")}`, url: "issues.html" })),
     ...overdueTasks.slice(0, 2).map((task) => ({ type: "OVERDUE", title: task.title, detail: `${task.id} · ${task.assignedTo} · ${task.dueDate || "No due date"}`, url: "tasks.html" })),
     ...inventoryItems.slice(0, 1).map(({ item, quantity, status }) => ({ type: status, title: item.name, detail: `${quantity} ${InventoryService.getUnitById(item.baseUnitId)?.abbreviation || item.baseUnitId} · Inventory`, url: "inventory.html" })),
+    ...(variance?.totals?.significantExceptions ? [{ type: "VARIANCE", title: "Inventory variance needs review", detail: `$${variance.totals.netVariance.toFixed(2)} net variance`, url: "inventory-variance.html" }] : []),
+    ...equipment.slice(0, 1).map((item) => ({ type: item.status, title: item.name, detail: `${item.category} · Equipment`, url: "equipment.html" })),
     ...handovers.slice(0, 1).map((handover) => ({ type: "HANDOVER", title: `${handover.fromShiftType.replaceAll("_", " ")} → ${handover.toShiftType.replaceAll("_", " ")}`, detail: `${handover.fromManager} · ${handover.nextPriority}`, url: `handover.html?id=${handover.id}&review=true` }))
   ].slice(0, 4);
   const list = document.getElementById("attentionList");

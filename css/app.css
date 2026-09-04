@@ -238,6 +238,43 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   justify-content: flex-end;
 }
 
+.management-grid,
+.history-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.history-layout {
+  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+}
+
+.skill-grid {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.2fr) repeat(11, minmax(92px, 1fr));
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.skill-grid > * {
+  min-height: 38px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  font-size: 12px;
+}
+
+.skill-cell.not_trained { color: var(--secondary-text); }
+.skill-cell.training { background: var(--warning-bg); color: var(--warning); }
+.skill-cell.qualified { background: var(--success-bg); color: var(--success); }
+.skill-cell.trainer { background: var(--info-bg); color: var(--primary); }
+
+.recipe-panel textarea {
+  width: 100%;
+  margin-top: 12px;
+}
+
 .eyebrow {
   font-size: 11px;
 
@@ -520,6 +557,11 @@ section {
     align-items: flex-start;
 
     gap: 20px;
+  }
+
+  .management-grid,
+  .history-layout {
+    grid-template-columns: 1fr;
   }
 
 }
