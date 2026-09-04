@@ -170,11 +170,11 @@ function updateNeedsAttention() {
   const issues = IssueService.getOpenIssues().sort((a, b) => ({ CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }[a.priority] - ({ CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }[b.priority])));
   const overdueTasks = TaskService.getOverdueTasks();
   const handovers = HandoverService.getPendingHandovers();
-  const inventoryItems = typeof InventoryService === "undefined" ? [] : InventoryService.getAllInventoryBalances().filter(({ item, quantity }) => ["OUT_OF_STOCK", "CRITICAL"].includes(InventoryService.getStockStatus(item, quantity)));
+  const inventoryItems = typeof InventoryService === "undefined" ? [] : InventoryService.getAllInventoryBalances().map((entry) => ({ ...entry, status: InventoryService.getStockStatus(entry.item, entry.quantity) })).filter(({ status }) => ["OUT_OF_STOCK", "CRITICAL"].includes(status));
   const items = [
     ...issues.slice(0, 3).map((issue) => ({ type: issue.priority, title: issue.title, detail: `${issue.id} · ${issue.assignedTo} · ${issue.status.replaceAll("_", " ")}`, url: "issues.html" })),
     ...overdueTasks.slice(0, 2).map((task) => ({ type: "OVERDUE", title: task.title, detail: `${task.id} · ${task.assignedTo} · ${task.dueDate || "No due date"}`, url: "tasks.html" })),
-    ...inventoryItems.slice(0, 1).map(({ item, quantity }) => ({ type: InventoryService.getStockStatus(item, quantity), title: item.name, detail: `${quantity} ${InventoryService.getUnitById(item.baseUnitId)?.abbreviation || item.baseUnitId} · Inventory`, url: "inventory.html" })),
+    ...inventoryItems.slice(0, 1).map(({ item, quantity, status }) => ({ type: status, title: item.name, detail: `${quantity} ${InventoryService.getUnitById(item.baseUnitId)?.abbreviation || item.baseUnitId} · Inventory`, url: "inventory.html" })),
     ...handovers.slice(0, 1).map((handover) => ({ type: "HANDOVER", title: `${handover.fromShiftType.replaceAll("_", " ")} → ${handover.toShiftType.replaceAll("_", " ")}`, detail: `${handover.fromManager} · ${handover.nextPriority}`, url: `handover.html?id=${handover.id}&review=true` }))
   ].slice(0, 4);
   const list = document.getElementById("attentionList");
@@ -214,6 +214,17 @@ updateDailyReportIndicator();
 updateNeedsAttention();
 function updateInventoryDashboard() {
   if (typeof InventoryService === "undefined") return;
-  const balances = InventoryService.getAllInventoryBalances(); const critical = balances.filter(({ item, quantity }) => InventoryService.getStockStatus(item, quantity) === "CRITICAL").length; const out = balances.filter(({ item, quantity }) => InventoryService.getStockStatus(item, quantity) === "OUT_OF_STOCK").length; const card = document.getElementById("inventoryHealthCard"); if (!card) return; card.querySelector("h2").textContent = critical + out; const note = document.getElementById("inventoryHealthNote"); note.textContent = balances.length ? `${critical} critical · ${out} out of stock` : "No inventory items"; note.classList.toggle("good", critical + out === 0); card.onclick = () => { window.location.href = "inventory.html"; }; }
+  performance.mark?.("dashboard-inventory-render:start");
+  const statusCounts = InventoryService.getAllInventoryBalances().reduce((counts, { item, quantity }) => {
+    const status = InventoryService.getStockStatus(item, quantity);
+    counts.total += 1;
+    counts.critical += status === "CRITICAL" ? 1 : 0;
+    counts.out += status === "OUT_OF_STOCK" ? 1 : 0;
+    return counts;
+  }, { total: 0, critical: 0, out: 0 });
+  const card = document.getElementById("inventoryHealthCard"); if (!card) return; card.querySelector("h2").textContent = statusCounts.critical + statusCounts.out; const note = document.getElementById("inventoryHealthNote"); note.textContent = statusCounts.total ? `${statusCounts.critical} critical · ${statusCounts.out} out of stock` : "No inventory items"; note.classList.toggle("good", statusCounts.critical + statusCounts.out === 0); card.onclick = () => { window.location.href = "inventory.html"; };
+  performance.mark?.("dashboard-inventory-render:end");
+  performance.measure?.("dashboard-inventory-render", "dashboard-inventory-render:start", "dashboard-inventory-render:end");
+}
 updateInventoryDashboard();
 window.addEventListener("inventory:changed", () => { updateInventoryDashboard(); updateNeedsAttention(); });

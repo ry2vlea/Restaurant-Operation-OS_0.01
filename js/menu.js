@@ -1,8 +1,10 @@
 const menuList = document.getElementById("menuList");
 
 function renderMenu() {
-  const items = MenuService.getMenuItems();
-  const metrics = items.map((item) => MenuService.calculateMenuMetrics(item));
+  performance.mark?.("menu-page-render:start");
+  const rows = MenuService.getMenuRows();
+  const items = rows.map(({ item }) => item);
+  const metrics = rows.map(({ metric }) => metric);
   document.getElementById("menuMetrics").innerHTML = [
     ["Active Items", items.filter((item) => item.active !== false).length],
     ["Available", metrics.filter((metric) => metric.status === "AVAILABLE").length],
@@ -11,11 +13,12 @@ function renderMenu() {
     ["Avg Food Cost", metrics.length ? `${(metrics.reduce((sum, metric) => sum + Number(metric.foodCostPercent || 0), 0) / metrics.length).toFixed(1)}%` : "0%"]
   ].map(([label, value]) => `<article class="metric-card"><p>${label}</p><h2>${value}</h2></article>`).join("");
 
-  menuList.innerHTML = items.length ? items.map((item) => {
-    const metric = MenuService.calculateMenuMetrics(item);
+  menuList.innerHTML = rows.length ? rows.map(({ item, metric }) => {
     return `<article class="menu-card"><div><p class="eyebrow">${item.categoryId.replace("MCAT-", "")}</p><h2>${item.name}</h2><p>${metric.servings} servings available${metric.limitingIngredient ? ` · Limiting: ${metric.limitingIngredient.name}` : ""}</p></div><div class="menu-financials"><strong>$${item.sellingPrice.toFixed(2)}</strong><span>Cost $${metric.cost.toFixed(2)} · Food Cost ${metric.foodCostPercent?.toFixed(1) || "-"}%</span><span>Contribution $${metric.contribution.toFixed(2)}</span><span class="status-badge ${metric.status.toLowerCase()}">${metric.status.replaceAll("_", " ")}</span></div></article>`;
   }).join("") : `<div class="empty-state"><h3>Build Your Menu</h3><p>Add menu items and connect them to recipes to begin tracking cost and availability.</p><div class="empty-actions"><button class="primary-button" id="emptyMenuItem">Add Menu Item</button><button class="secondary-button" onclick="location.href='recipes.html'">Create Recipe</button></div></div>`;
   document.getElementById("emptyMenuItem")?.addEventListener("click", openMenuForm);
+  performance.mark?.("menu-page-render:end");
+  performance.measure?.("menu-page-render", "menu-page-render:start", "menu-page-render:end");
 }
 
 function openMenuForm() {

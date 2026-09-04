@@ -7,6 +7,7 @@
   function getBatches() { return read(); }
 
   function produce(values) {
+    const inventoryContext = InventoryService.getCalculationContext();
     const recipe = RecipeService.getRecipeById(values.recipeId);
     if (!recipe || recipe.recipeType !== "PREP" || !recipe.producedInventoryItemId) throw new Error("Select a valid Prep Recipe with a produced Inventory Item.");
     const multiplier = Number(values.batchMultiplier || 1);
@@ -25,7 +26,7 @@
     const ingredients = cost.lines.map((line) => ({ ...line, requiredBaseQuantity: Number(line.ingredient.baseQuantity) * multiplier }));
     ingredients.forEach((line) => {
       const sourceLocationId = line.item.defaultLocationId;
-      const available = InventoryService.getItemStockByLocation(line.item.id, sourceLocationId);
+      const available = inventoryContext.balances.byItemLocation.get(`${line.item.id}|${sourceLocationId}`) || 0;
       if (available + 1e-9 < line.requiredBaseQuantity) {
         throw new Error(`${line.item.name} is short in ${InventoryService.getLocationById(sourceLocationId)?.name || "its default location"}. Required ${InventoryService.formatStockBreakdown(line.item.id, line.requiredBaseQuantity)}, available ${InventoryService.formatStockBreakdown(line.item.id, available)}.`);
       }

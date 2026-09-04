@@ -1,6 +1,7 @@
 (function () {
   const recipeKey = "recipes";
   const ingredientKey = "recipeIngredients";
+  let contextCache = null;
 
   function read(key) {
     try {
@@ -11,6 +12,7 @@
 
   function write(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
+    contextCache = null;
     return value;
   }
 
@@ -24,8 +26,25 @@
 
   function getRecipes() { return read(recipeKey); }
   function getAllIngredients() { return read(ingredientKey); }
-  function getRecipeIngredients(recipeId) { return getAllIngredients().filter((ingredient) => ingredient.recipeId === recipeId).sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0)); }
-  function getRecipeById(id) { return getRecipes().find((recipe) => recipe.id === id) || null; }
+  function getCalculationContext() {
+    if (contextCache) return contextCache;
+    const recipes = getRecipes();
+    const ingredients = getAllIngredients();
+    const recipeById = new Map(recipes.map((recipe) => [recipe.id, recipe]));
+    const ingredientsByRecipe = new Map();
+    const recipesByInventoryItem = new Map();
+    ingredients.forEach((ingredient) => {
+      if (!ingredientsByRecipe.has(ingredient.recipeId)) ingredientsByRecipe.set(ingredient.recipeId, []);
+      ingredientsByRecipe.get(ingredient.recipeId).push(ingredient);
+      if (!recipesByInventoryItem.has(ingredient.inventoryItemId)) recipesByInventoryItem.set(ingredient.inventoryItemId, new Set());
+      recipesByInventoryItem.get(ingredient.inventoryItemId).add(ingredient.recipeId);
+    });
+    ingredientsByRecipe.forEach((values) => values.sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0)));
+    contextCache = { recipes, ingredients, recipeById, ingredientsByRecipe, recipesByInventoryItem, costByRecipe: new Map() };
+    return contextCache;
+  }
+  function getRecipeIngredients(recipeId) { return [...(getCalculationContext().ingredientsByRecipe.get(recipeId) || [])]; }
+  function getRecipeById(id) { return getCalculationContext().recipeById.get(id) || null; }
 
   function saveRecipes(recipes) {
     write(recipeKey, recipes);
@@ -136,9 +155,11 @@
   }
 
   function calculateRecipeCost(recipeId) {
-    const recipe = getRecipeById(recipeId);
+    const context = getCalculationContext();
+    if (context.costByRecipe.has(recipeId)) return context.costByRecipe.get(recipeId);
+    const recipe = context.recipeById.get(recipeId);
     if (!recipe) return { recipe: null, lines: [], totalCost: 0, costPerYieldUnit: 0, yieldBaseQuantity: 0, costPerYieldBaseUnit: 0 };
-    const ingredients = getRecipeIngredients(recipeId);
+    const ingredients = context.ingredientsByRecipe.get(recipeId) || [];
     const lines = ingredients.map((ingredient) => {
       const item = InventoryService.getItemById(ingredient.inventoryItemId);
       const baseUnitCost = InventoryService.getBaseUnitCost(item);
@@ -154,7 +175,7 @@
         yieldBaseQuantity = 0;
       }
     }
-    return {
+    const result = {
       recipe,
       lines,
       totalCost,
@@ -162,6 +183,8 @@
       yieldBaseQuantity,
       costPerYieldBaseUnit: yieldBaseQuantity > 0 ? totalCost / yieldBaseQuantity : 0
     };
+    context.costByRecipe.set(recipeId, result);
+    return result;
   }
 
   function deactivateRecipe(id) {
@@ -181,6 +204,9 @@
     createRecipe,
     updateRecipe,
     calculateRecipeCost,
-    deactivateRecipe
+    deactivateRecipe,
+    getCalculationContext
   };
+  window.addEventListener?.("inventory:changed", () => { contextCache = null; });
+  window.addEventListener?.("storage", () => { contextCache = null; });
 })();

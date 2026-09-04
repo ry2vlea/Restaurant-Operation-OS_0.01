@@ -1,9 +1,18 @@
 const inventory = { modal: null };
 const inventoryLabel = (value) => (value || "Not provided").replaceAll("_", " ");
 const inventoryUnit = (id) => InventoryService.getUnitById(id)?.abbreviation || id;
-const inventoryCategory = (id) => InventoryService.getCategories().find((category) => category.id === id)?.name || "Other";
-const inventoryLocation = (id) => InventoryService.getLocations().find((location) => location.id === id)?.name || "Unknown location";
+const inventoryCategory = (id) => InventoryService.getCalculationContext().categoryById.get(id)?.name || "Other";
+const inventoryLocation = (id) => InventoryService.getCalculationContext().locationById.get(id)?.name || "Unknown location";
 const stockBreakdown = (item, quantity) => InventoryService.formatStockBreakdown(item.id, quantity);
+let inventoryBalances = [];
+
+function measureRender(name, renderFn) {
+  performance.mark?.(`${name}:start`);
+  const result = renderFn();
+  performance.mark?.(`${name}:end`);
+  performance.measure?.(name, `${name}:start`, `${name}:end`);
+  return result;
+}
 
 function closeInventoryModal() {
   inventory.modal?.remove();
@@ -101,8 +110,7 @@ function movementForm() {
     </div>`;
 }
 
-function renderMetrics() {
-  const balances = InventoryService.getAllInventoryBalances();
+function renderMetrics(balances = inventoryBalances) {
   const active = balances.filter(({ item }) => item.active !== false);
   const statuses = active.map(({ item, quantity }) => InventoryService.getStockStatus(item, quantity));
   const today = new Date().toISOString().slice(0, 10);
@@ -142,31 +150,37 @@ function renderMetrics() {
 }
 
 function renderItems() {
+  return measureRender("inventory-items-render", () => {
   const query = document.getElementById("inventorySearch").value.trim().toLowerCase();
   const category = document.getElementById("inventoryCategory").value;
   const status = document.getElementById("inventoryStatus").value;
   const location = document.getElementById("inventoryLocation").value;
-  const rows = InventoryService.getAllInventoryBalances().filter(({ item, quantity }) => {
+  const context = InventoryService.getCalculationContext();
+  const rows = inventoryBalances.filter(({ item, quantity }) => {
     const matchesQuery = !query || item.name.toLowerCase().includes(query) || (item.sku || "").toLowerCase().includes(query);
-    return matchesQuery && (!category || item.categoryId === category) && (!status || InventoryService.getStockStatus(item, quantity) === status) && (!location || InventoryService.getItemStockByLocation(item.id, location) !== 0);
+    return matchesQuery && (!category || item.categoryId === category) && (!status || InventoryService.getStockStatus(item, quantity) === status) && (!location || (context.balances.byItemLocation.get(`${item.id}|${location}`) || 0) !== 0);
   });
 
   document.getElementById("inventoryResult").textContent = `${rows.length} item${rows.length === 1 ? "" : "s"}`;
   document.getElementById("inventoryTable").innerHTML = rows.length ? `
     <div class="inventory-table-head"><span>ITEM</span><span>CATEGORY</span><span>CURRENT</span><span>VALUE</span><span>STATUS</span></div>
-    ${rows.map(({ item, quantity, value }) => `
+    ${rows.map(({ item, quantity, value }) => {
+      const itemStatus = InventoryService.getStockStatus(item, quantity);
+      return `
       <button class="inventory-row" data-item-id="${item.id}">
         <strong>${item.name}<small>${item.sku || item.id}</small></strong>
         <span>${inventoryCategory(item.categoryId)}</span>
         <span class="inventory-current"><b>${stockBreakdown(item, quantity)}</b><small>${quantity.toFixed(2).replace(/\.00$/, "")} ${inventoryUnit(item.baseUnitId)} total</small></span>
         <span>$${value.toFixed(2)}</span>
-        <span class="status-badge ${InventoryService.getStockStatus(item, quantity).toLowerCase()}">${inventoryLabel(InventoryService.getStockStatus(item, quantity))}</span>
-      </button>`).join("")}` : `
+        <span class="status-badge ${itemStatus.toLowerCase()}">${inventoryLabel(itemStatus)}</span>
+      </button>`;
+    }).join("")}` : `
       <div class="empty-state"><h3>Build Your Inventory</h3><p>Add your first inventory item to begin tracking stock, counts, receiving and waste.</p><div class="empty-actions"><button class="primary-button" id="emptyAddItem">Add Item</button><button class="secondary-button" id="loadDemoData">Load Demo Data</button></div></div>`;
 
   document.querySelectorAll(".inventory-row").forEach((row) => row.onclick = () => openItemDetail(row.dataset.itemId));
   document.getElementById("emptyAddItem")?.addEventListener("click", () => document.getElementById("addItemButton").click());
   document.getElementById("loadDemoData")?.addEventListener("click", loadDemoData);
+  });
 }
 
 function formatMovementEntered(movement) {
@@ -178,12 +192,15 @@ function formatMovementEntered(movement) {
 }
 
 function renderMovements() {
-  const movements = InventoryService.getMovements().slice(-8).reverse();
+  return measureRender("movement-history-render", () => {
+  const context = InventoryService.getCalculationContext();
+  const movements = context.movements.slice(-8).reverse();
   document.getElementById("movementList").innerHTML = movements.length ? movements.map((movement) => {
-    const item = InventoryService.getItemById(movement.itemId);
+    const item = context.itemById.get(movement.itemId);
     const sign = movement.direction === "IN" ? "+" : "−";
     return `<div class="movement-row"><span>${new Date(movement.createdAt).toLocaleDateString()}</span><strong>${item?.name || movement.itemId}<small>${inventoryLabel(movement.movementType)}</small></strong><span class="${movement.direction === "IN" ? "movement-in" : "movement-out"}">${sign}${formatMovementEntered(movement)}<small>${movement.baseQuantity} ${inventoryUnit(item?.baseUnitId)} equivalent</small></span><span>${inventoryLocation(movement.locationId)}</span><small>${movement.manager}</small></div>`;
   }).join("") : `<div class="empty-state"><p>No inventory movements yet.</p></div>`;
+  });
 }
 
 function unitStructure(item) {
@@ -200,8 +217,10 @@ function unitStructure(item) {
 function openItemDetail(id) {
   const item = InventoryService.getItemById(id);
   if (!item) return;
-  const balance = InventoryService.getAllInventoryBalances().find((entry) => entry.item.id === id);
-  const movements = InventoryService.getMovements().filter((movement) => movement.itemId === id).slice(-6).reverse();
+  const context = InventoryService.getCalculationContext();
+  const quantity = context.balances.byItem.get(id) || 0;
+  const balance = { item, quantity, value: quantity * InventoryService.getBaseUnitCost(item) };
+  const movements = (context.movementsByItem.get(id) || []).slice(-6).reverse();
   openInventoryModal(item.name, `
     <div class="item-detail-hero">
       <div><p class="eyebrow">${item.id}</p><h3>${inventoryLabel(InventoryService.getStockStatus(item, balance.quantity))}</h3></div>
@@ -212,7 +231,7 @@ function openItemDetail(id) {
       <div class="item-detail-block"><h3>Unit Structure</h3><p class="unit-structure-copy">${unitStructure(item)}</p><p>Purchase cost<strong>$${InventoryService.getPurchaseUnitCost(item).toFixed(2)} / ${inventoryUnit(InventoryService.getPrimaryUnitId(item))}</strong></p><p>Base cost<strong>$${InventoryService.getBaseUnitCost(item).toFixed(4)} / ${inventoryUnit(item.baseUnitId)}</strong></p></div>
       <div class="item-detail-block"><h3>Operating Levels</h3><p>Minimum<strong>${InventoryService.formatStockBreakdown(item.id, item.minimumLevel)}</strong></p><p>Par<strong>${InventoryService.formatStockBreakdown(item.id, item.parLevel)}</strong></p><p>Maximum<strong>${InventoryService.formatStockBreakdown(item.id, item.maximumLevel)}</strong></p></div>
     </div>
-    <div class="item-detail-block"><h3>Locations</h3>${InventoryService.getLocations().map((location) => { const qty = InventoryService.getItemStockByLocation(item.id, location.id); return `<p>${location.name}<strong>${InventoryService.formatStockBreakdown(item.id, qty)}</strong></p>`; }).join("")}</div>
+    <div class="item-detail-block"><h3>Locations</h3>${context.locations.map((location) => { const qty = context.balances.byItemLocation.get(`${item.id}|${location.id}`) || 0; return `<p>${location.name}<strong>${InventoryService.formatStockBreakdown(item.id, qty)}</strong></p>`; }).join("")}</div>
     <div class="item-detail-block"><h3>Recent Movements</h3>${movements.map((movement) => `<p>${inventoryLabel(movement.movementType)}<strong>${movement.direction === "IN" ? "+" : "−"}${formatMovementEntered(movement)}</strong></p>`).join("") || "<p>No movements yet.</p>"}</div>
     <div class="modal-actions"><button type="button" class="primary-button" id="itemTask">Create Task</button><button type="button" class="secondary-button" id="itemIssue">Report Issue</button></div>`, null, { showSubmit: false });
   document.getElementById("itemTask")?.addEventListener("click", () => openTaskForm({ sourceType: "INVENTORY_ITEM", sourceId: item.id, sourceLabel: item.name, category: "INVENTORY" }));
@@ -232,13 +251,17 @@ function loadDemoData() {
 }
 
 function render() {
+  return measureRender("inventory-page-render", () => {
+  inventoryBalances = InventoryService.getAllInventoryBalances();
+  const context = InventoryService.getCalculationContext();
   const categorySelect = document.getElementById("inventoryCategory");
-  categorySelect.innerHTML = `<option value="">All categories</option>${options(InventoryService.getCategories())}`;
+  categorySelect.innerHTML = `<option value="">All categories</option>${options(context.categories)}`;
   const locationSelect = document.getElementById("inventoryLocation");
-  locationSelect.innerHTML = `<option value="">All locations</option>${options(InventoryService.getLocations())}`;
+  locationSelect.innerHTML = `<option value="">All locations</option>${options(context.locations)}`;
   renderMetrics();
   renderItems();
   renderMovements();
+  });
 }
 
 document.getElementById("addItemButton").onclick = () => {

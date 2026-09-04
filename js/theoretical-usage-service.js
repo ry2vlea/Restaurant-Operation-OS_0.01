@@ -34,20 +34,26 @@
   }
 
   function calculateTheoreticalUsage(date) {
+    performance.mark?.("theoretical-usage-calculate:start");
+    const recipeContext = RecipeService.getCalculationContext();
+    const inventoryContext = InventoryService.getCalculationContext();
     const totals = {};
     getSales(date).forEach((sale) => {
       const snapshot = Array.isArray(sale.ingredientSnapshot) && sale.ingredientSnapshot.length
         ? sale.ingredientSnapshot
         : (() => {
-            const recipe = RecipeService.getRecipeById(sale.recipeIdAtSale);
+            const recipe = recipeContext.recipeById.get(sale.recipeIdAtSale);
             const yieldQuantity = Number(recipe?.yieldQuantity || 1);
-            return RecipeService.getRecipeIngredients(sale.recipeIdAtSale).map((ingredient) => ({ inventoryItemId: ingredient.inventoryItemId, baseQuantityPerServing: Number(ingredient.baseQuantity || 0) / yieldQuantity }));
+            return (recipeContext.ingredientsByRecipe.get(sale.recipeIdAtSale) || []).map((ingredient) => ({ inventoryItemId: ingredient.inventoryItemId, baseQuantityPerServing: Number(ingredient.baseQuantity || 0) / yieldQuantity }));
           })();
       snapshot.forEach((ingredient) => {
         totals[ingredient.inventoryItemId] = (totals[ingredient.inventoryItemId] || 0) + Number(ingredient.baseQuantityPerServing || 0) * Number(sale.quantitySold || 0);
       });
     });
-    return Object.entries(totals).map(([itemId, baseQuantity]) => ({ item: InventoryService.getItemById(itemId), itemId, baseQuantity }));
+    const result = Object.entries(totals).map(([itemId, baseQuantity]) => ({ item: inventoryContext.itemById.get(itemId) || null, itemId, baseQuantity }));
+    performance.mark?.("theoretical-usage-calculate:end");
+    performance.measure?.("theoretical-usage-calculate", "theoretical-usage-calculate:start", "theoretical-usage-calculate:end");
+    return result;
   }
 
   window.TheoreticalUsageService = { getSales, saveSale, calculateTheoreticalUsage };

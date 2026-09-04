@@ -33,12 +33,16 @@ productionForm.onsubmit = (event) => {
 };
 
 function renderProduction() {
+  performance.mark?.("production-render:start");
+  const recipeContext = RecipeService.getCalculationContext();
   const batches = ProductionService.getBatches().slice().reverse();
   document.getElementById("productionList").innerHTML = batches.length ? batches.map((batch) => {
-    const recipe = RecipeService.getRecipeById(batch.recipeId);
+    const recipe = recipeContext.recipeById.get(batch.recipeId);
     const yieldPercent = batch.expectedYield ? batch.actualYield / batch.expectedYield * 100 : 0;
     return `<article class="recipe-card production-card"><div><p class="eyebrow">COMPLETED BATCH</p><h2>${recipe?.name || batch.recipeId}</h2><p>Expected ${batch.expectedYield} · Actual ${batch.actualYield} · Yield ${yieldPercent.toFixed(1)}%</p><small>${new Date(batch.completedAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })} · ${batch.manager}</small></div><div class="recipe-card-metrics"><strong>$${Number(batch.totalBatchCost || 0).toFixed(2)}</strong><span>$${Number(batch.costPerYieldBaseUnit || 0).toFixed(4)} / base unit</span></div></article>`;
   }).join("") : `<div class="empty-state"><p>No Production Batches Today</p></div>`;
+  performance.mark?.("production-render:end");
+  performance.measure?.("production-render", "production-render:start", "production-render:end");
 }
 
 syncProductionRecipe();

@@ -50,6 +50,12 @@
     PRODUCTION_CONSUME: "OUT"
   };
 
+  let contextCache = null;
+
+  function invalidateContext() {
+    contextCache = null;
+  }
+
   function read(key) {
     try {
       const value = JSON.parse(localStorage.getItem(key));
@@ -61,6 +67,7 @@
 
   function write(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
+    invalidateContext();
     return value;
   }
 
@@ -106,9 +113,62 @@
     return `${prefix}-${String(highest + 1).padStart(width, "0")}`;
   }
 
-  function getItemById(id) { return getItems().find((item) => item.id === id) || null; }
-  function getLocationById(id) { return getLocations().find((location) => location.id === id) || null; }
-  function getUnitById(id) { return getUnits().find((unit) => unit.id === id) || null; }
+  function getCalculationContext() {
+    if (contextCache) return contextCache;
+    const items = getItems();
+    const categories = getCategories();
+    const locations = getLocations();
+    const units = getUnits();
+    const conversions = getConversions();
+    const movements = getMovements();
+    const itemById = new Map(items.map((item) => [item.id, item]));
+    const categoryById = new Map(categories.map((category) => [category.id, category]));
+    const locationById = new Map(locations.map((location) => [location.id, location]));
+    const unitById = new Map(units.map((unit) => [unit.id, unit]));
+    const conversionByItemUnit = new Map();
+    conversions.forEach((value) => {
+      if (Number(value.conversionFactor) > 0) {
+        conversionByItemUnit.set(`${value.inventoryItemId}|${value.fromUnitId}|${value.toUnitId}`, value);
+      }
+    });
+
+    const movementsByItem = new Map();
+    const movementsByItemLocation = new Map();
+    const balances = { byItem: new Map(), byItemLocation: new Map() };
+    movements.forEach((movement) => {
+      const quantity = signedQuantity(movement);
+      const itemTotal = balances.byItem.get(movement.itemId) || 0;
+      balances.byItem.set(movement.itemId, itemTotal + quantity);
+      const itemLocationKey = `${movement.itemId}|${movement.locationId}`;
+      balances.byItemLocation.set(itemLocationKey, (balances.byItemLocation.get(itemLocationKey) || 0) + quantity);
+      if (!movementsByItem.has(movement.itemId)) movementsByItem.set(movement.itemId, []);
+      movementsByItem.get(movement.itemId).push(movement);
+      if (!movementsByItemLocation.has(itemLocationKey)) movementsByItemLocation.set(itemLocationKey, []);
+      movementsByItemLocation.get(itemLocationKey).push(movement);
+    });
+
+    contextCache = {
+      items,
+      categories,
+      locations,
+      units,
+      conversions,
+      movements,
+      itemById,
+      categoryById,
+      locationById,
+      unitById,
+      conversionByItemUnit,
+      movementsByItem,
+      movementsByItemLocation,
+      balances
+    };
+    return contextCache;
+  }
+
+  function getItemById(id) { return getCalculationContext().itemById.get(id) || null; }
+  function getLocationById(id) { return getCalculationContext().locationById.get(id) || null; }
+  function getUnitById(id) { return getCalculationContext().unitById.get(id) || null; }
 
   function getPrimaryUnitId(item) {
     return item?.primaryUnitId || item?.purchaseUnitId || item?.baseUnitId || null;
@@ -128,12 +188,7 @@
     if (unitId === primaryUnitId && !item.intermediateUnitId && Number(item.baseUnitsPerPrimary) > 0) {
       return Number(item.baseUnitsPerPrimary);
     }
-    const conversion = getConversions().find((value) =>
-      value.inventoryItemId === item.id &&
-      value.fromUnitId === unitId &&
-      value.toUnitId === item.baseUnitId &&
-      Number(value.conversionFactor) > 0
-    );
+    const conversion = getCalculationContext().conversionByItemUnit.get(`${item.id}|${unitId}|${item.baseUnitId}`);
     return conversion ? Number(conversion.conversionFactor) : null;
   }
 
@@ -241,16 +296,17 @@
   }
 
   function getItemStock(itemId) {
-    return getMovements().filter((movement) => movement.itemId === itemId).reduce((total, movement) => total + signedQuantity(movement), 0);
+    return getCalculationContext().balances.byItem.get(itemId) || 0;
   }
 
   function getItemStockByLocation(itemId, locationId) {
-    return getMovements().filter((movement) => movement.itemId === itemId && movement.locationId === locationId).reduce((total, movement) => total + signedQuantity(movement), 0);
+    return getCalculationContext().balances.byItemLocation.get(`${itemId}|${locationId}`) || 0;
   }
 
   function getAllInventoryBalances() {
-    return getItems().map((item) => {
-      const quantity = getItemStock(item.id);
+    const context = getCalculationContext();
+    return context.items.map((item) => {
+      const quantity = context.balances.byItem.get(item.id) || 0;
       return { item, quantity, value: quantity * getBaseUnitCost(item) };
     });
   }
@@ -604,8 +660,9 @@
     getItems, saveItems, getCategories, getLocations, getUnits, getConversions, getMovements, getCounts, getCountLines,
     getDeliveries, getDeliveryLines, getWasteRecords, getVariances, getVendors, getItemById, getLocationById, getUnitById,
     getPrimaryUnitId, getUnitFactor, convertToBaseUnit, convertBreakdownToBaseUnit, getStockBreakdown, formatStockBreakdown,
-    getBaseUnitCost, getPurchaseUnitCost, getMovementDirection, getItemStock, getItemStockByLocation, getAllInventoryBalances,
+    getBaseUnitCost, getPurchaseUnitCost, getMovementDirection, getCalculationContext, getItemStock, getItemStockByLocation, getAllInventoryBalances,
     getStockStatus, createItem, updateItem, updateItemBaseCost, createInventoryMovement, transfer, createWaste, createCount,
     updateCountLine, completeCount, correctVariance
   };
+  window.addEventListener?.("storage", invalidateContext);
 })();

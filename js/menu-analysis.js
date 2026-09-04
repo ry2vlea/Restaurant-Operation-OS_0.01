@@ -8,10 +8,11 @@ const savedTarget = Number(localStorage.getItem("targetFoodCostPercent") || 30);
 targetInput.value = savedTarget;
 
 function menuRows() {
-  return MenuService.getMenuItems().filter((item) => item.active !== false).map((item) => ({ item, metric: MenuService.calculateMenuMetrics(item) }));
+  return MenuService.getMenuRows().filter(({ item }) => item.active !== false);
 }
 
 function renderAnalysis() {
+  performance.mark?.("menu-analysis-render:start");
   const rows = menuRows();
   const percentages = rows.map(({ metric }) => metric.foodCostPercent).filter((value) => Number.isFinite(value));
   const average = percentages.length ? percentages.reduce((a, b) => a + b, 0) / percentages.length : 0;
@@ -30,6 +31,8 @@ function renderAnalysis() {
   analysisList.innerHTML = rows.length ? `
     <div class="inventory-table-head menu-analysis-head"><span>MENU ITEM</span><span>PRICE</span><span>COST</span><span>FOOD COST</span><span>CONTRIBUTION</span><span>AVAILABILITY</span></div>
     ${rows.map(({ item, metric }) => `<div class="inventory-row menu-analysis-row"><strong>${item.name}<small>${RecipeService.getRecipeById(item.recipeId)?.name || "No recipe"}</small></strong><span>$${item.sellingPrice.toFixed(2)}</span><span>$${metric.cost.toFixed(2)}</span><span class="${metric.foodCostPercent > target ? "cost-attention" : "cost-good"}">${metric.foodCostPercent?.toFixed(1) || "-"}%<small>${metric.foodCostPercent > target ? "Above target" : "Within target"}</small></span><span>$${metric.contribution.toFixed(2)}</span><span class="status-badge ${metric.status.toLowerCase()}">${metric.status.replaceAll("_", " ")}</span></div>`).join("")}` : `<div class="empty-state"><h3>No Menu Items</h3><p>Create Menu Items to begin cost analysis.</p></div>`;
+  performance.mark?.("menu-analysis-render:end");
+  performance.measure?.("menu-analysis-render", "menu-analysis-render:start", "menu-analysis-render:end");
 }
 
 function loadSalesOptions() {
