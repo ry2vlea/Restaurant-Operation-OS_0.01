@@ -239,15 +239,9 @@ function openItemDetail(id) {
 }
 
 function loadDemoData() {
-  if (InventoryService.getItems().length) return;
-  const chicken = InventoryService.createItem({ name: "Chicken Breast", sku: "PROT-001", categoryId: "CAT-PROTEIN", primaryUnitId: "UNIT-CS", intermediateUnitId: "UNIT-PK", baseUnitId: "UNIT-EA", intermediateUnitsPerPrimary: 6, baseUnitsPerIntermediate: 12, defaultLocationId: "LOC-WALKIN-COOLER", purchaseUnitCost: 102.24, minimumLevel: 72, parLevel: 216, maximumLevel: 360 });
-  const oil = InventoryService.createItem({ name: "Fry Oil", sku: "OIL-001", categoryId: "CAT-SUPPLIES", primaryUnitId: "UNIT-CS", intermediateUnitId: "UNIT-JUG", baseUnitId: "UNIT-FLOZ", intermediateUnitsPerPrimary: 4, baseUnitsPerIntermediate: 128, defaultLocationId: "LOC-DRY-STORAGE", purchaseUnitCost: 88, minimumLevel: 512, parLevel: 1536, maximumLevel: 3072 });
-  const buns = InventoryService.createItem({ name: "Burger Buns", sku: "BAK-001", categoryId: "CAT-DRY", primaryUnitId: "UNIT-CS", intermediateUnitId: "UNIT-PK", baseUnitId: "UNIT-EA", intermediateUnitsPerPrimary: 6, baseUnitsPerIntermediate: 8, defaultLocationId: "LOC-DRY-STORAGE", purchaseUnitCost: 20.16, minimumLevel: 48, parLevel: 144, maximumLevel: 240 });
-  InventoryService.createInventoryMovement({ itemId: chicken.id, locationId: chicken.defaultLocationId, quantity: 3, unitId: "UNIT-CS", movementType: "RECEIVE", reason: "Demo opening stock" });
-  InventoryService.createInventoryMovement({ itemId: oil.id, locationId: oil.defaultLocationId, quantity: 3, unitId: "UNIT-CS", movementType: "RECEIVE", reason: "Demo opening stock" });
-  InventoryService.createInventoryMovement({ itemId: buns.id, locationId: buns.defaultLocationId, quantity: 2, unitId: "UNIT-CS", movementType: "RECEIVE", reason: "Demo opening stock" });
+  const result = SampleDataService.load();
   render();
-  showToast("Demo inventory loaded with physical unit hierarchies.");
+  showToast(`Sample data loaded: ${result.items} items, ${result.recipes} recipes, ${result.menuItems} menu items.`);
 }
 
 function render() {

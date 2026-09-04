@@ -95,6 +95,15 @@ startShiftButton.addEventListener(
   startOpeningShift
 );
 
+document.getElementById("sampleDataButton")?.addEventListener("click", () => {
+  const result = SampleDataService.load();
+  updateIssueCount();
+  updateTaskCount();
+  updateInventoryDashboard();
+  updateNeedsAttention();
+  showToast(`Sample data loaded: ${result.items} items, ${result.recipes} recipes, ${result.menuItems} menu items.`);
+});
+
 function updateIssueCount() {
   const count = IssueService.getOpenIssues().length;
   document.getElementById("issueCount").textContent = count;

@@ -231,6 +231,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   color: var(--secondary-text);
 }
 
+.welcome-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .eyebrow {
   font-size: 11px;
 
