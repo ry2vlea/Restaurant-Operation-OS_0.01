@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    Sales | Restaurant OS
+  </title>
+
+
+  <link
+    rel="stylesheet"
+    href="css/app.css"
+  >
+
+  <link
+    rel="stylesheet"
+    href="css/app-header.css"
+  >
+
+</head>
+
+
+<body>
+
+  <main class="main recipe-main">
+
+
+    <!-- APP HEADER -->
+
+    <div id="appHeader"></div>
+
+
+
+    <!-- DAILY CONTROLS -->
+
+    <section class="recipe-panel">
+
+      <div class="section-header">
+
+        <div>
+
+          <p class="eyebrow">
+            DAILY SALES
+          </p>
+
+          <h2>
+            Sales Entry
+          </h2>
+
+          <p>
+            Enter daily menu-item sales
+            to calculate revenue,
+            menu mix and theoretical usage.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="form-grid">
+
+
+        <label>
+
+          Business Date
+
+          <input
+            id="salesDate"
+            type="date"
+          >
+
+        </label>
+
+
+        <label>
+
+          Transactions
+
+          <input
+            id="transactionsInput"
+            type="number"
+            min="0"
+            step="1"
+            value="0"
+          >
+
+        </label>
+
+
+        <div>
+
+          <button
+            id="saveSalesButton"
+            class="primary-button"
+            type="button"
+          >
+            Save Daily Sales
+          </button>
+
+        </div>
+
+
+      </div>
+
+    </section>
+
+
+
+    <!-- METRICS -->
+
+    <section
+      id="salesMetrics"
+      class="inventory-metrics"
+    ></section>
+
+
+
+    <!-- SALES ENTRY -->
+
+    <section class="recipe-panel">
+
+      <div class="section-header">
+
+        <div>
+
+          <p class="eyebrow">
+            MENU MIX
+          </p>
+
+          <h2>
+            Menu Item Sales
+          </h2>
+
+        </div>
+
+
+        <button
+          id="clearQuantitiesButton"
+          class="secondary-button"
+          type="button"
+        >
+          Clear Quantities
+        </button>
+
+      </div>
+
+
+      <div
+        id="salesTable"
+        class="inventory-table"
+      ></div>
+
+    </section>
+
+
+
+    <!-- SAVED SALES -->
+
+    <section class="recipe-panel">
+
+      <div class="section-header">
+
+        <div>
+
+          <p class="eyebrow">
+            SALES ANALYSIS
+          </p>
+
+          <h2>
+            Saved Menu Mix
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="menuMixTable"
+        class="inventory-table"
+      ></div>
+
+    </section>
+
+
+  </main>
+
+
+
+  <!-- SERVICES -->
+
+  <script src="js/inventory-service.js"></script>
+
+  <script src="js/recipe-service.js"></script>
+
+  <script src="js/menu-service.js"></script>
+
+  <script src="js/sales-service.js"></script>
+
+  <script src="js/theoretical-usage-service.js"></script>
+
+
+  <!-- COMPONENTS -->
+
+  <script src="js/components/ui-feedback.js"></script>
+
+  <script src="js/components/app-header.js"></script>
+
+
+  <!-- PAGE HEADER -->
+
+  <script>
+
+    AppHeader.init({
+
+      section: "PERFORMANCE",
+
+      title: "Sales",
+
+      description:
+        "Daily sales, menu mix and theoretical food cost.",
+
+      backHref: "index.html",
+
+      backLabel: "Dashboard",
+
+      showDateSelector: false
+
+    });
+
+  </script>
+
+
+  <!-- PAGE CONTROLLER -->
+
+  <script src="js/sales.js"></script>
+
+
+</body>
+
+</html>
