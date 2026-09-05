@@ -132,23 +132,23 @@
       { sourceType: "INVENTORY_ITEM", sourceId: items.ketchup.id, quantity: 8, unitId: "UNIT-OZ" },
       { sourceType: "INVENTORY_ITEM", sourceId: items.seasoning.id, quantity: 2, unitId: "UNIT-OZ" }
     ]);
-    const chickenSandwich = ensureRecipe({ name: "Crispy Chicken Sandwich", recipeType: "MENU_PRODUCT", sellingPrice: 9.5, targetFoodCostPercent: 30 }, [
+    const chickenSandwich = ensureRecipe({ name: "Crispy Chicken Sandwich", recipeType: "MENU_PRODUCT" }, [
       { sourceType: "INVENTORY_ITEM", sourceId: items.chickenFillet.id, quantity: 1, unitId: "UNIT-EA" },
       { inventoryItemId: items.buns.id, quantity: 1, unitId: "UNIT-EA" },
       { sourceType: "PREP_ITEM", sourceId: houseSauce.id, quantity: 1.5, unitId: "UNIT-OZ" },
       { sourceType: "INVENTORY_ITEM", sourceId: items.pickles.id, quantity: 3, unitId: "UNIT-EA" }
     ]);
-    const friesRecipe = ensureRecipe({ name: "Regular Fries", recipeType: "MENU_PRODUCT", sellingPrice: 3.25, targetFoodCostPercent: 28 }, [
+    const friesRecipe = ensureRecipe({ name: "Regular Fries", recipeType: "MENU_PRODUCT" }, [
       { sourceType: "INVENTORY_ITEM", sourceId: items.fries.id, quantity: 0.375, unitId: "UNIT-LB" },
       { sourceType: "INVENTORY_ITEM", sourceId: items.oil.id, quantity: 1, unitId: "UNIT-FLOZ" }
     ]);
-    const pepsiRecipe = ensureRecipe({ name: "20 oz Pepsi", recipeType: "MENU_PRODUCT", sellingPrice: 2.79, targetFoodCostPercent: 18 }, [
+    const pepsiRecipe = ensureRecipe({ name: "20 oz Pepsi", recipeType: "MENU_PRODUCT" }, [
       { sourceType: "INVENTORY_ITEM", sourceId: items.cola.id, quantity: 3, unitId: "UNIT-FLOZ" },
       { sourceType: "INVENTORY_ITEM", sourceId: items.cups.id, quantity: 1, unitId: "UNIT-EA" },
       { sourceType: "INVENTORY_ITEM", sourceId: items.lids.id, quantity: 1, unitId: "UNIT-EA" },
       { sourceType: "INVENTORY_ITEM", sourceId: items.straws.id, quantity: 1, unitId: "UNIT-EA" }
     ]);
-    const chickenCombo = ensureRecipe({ name: "Chicken Sandwich Combo", recipeType: "COMBO", sellingPrice: 13.75, targetFoodCostPercent: 30 }, [
+    const chickenCombo = ensureRecipe({ name: "Chicken Sandwich Combo", recipeType: "COMBO" }, [
       { sourceType: "MENU_PRODUCT", sourceId: chickenSandwich.id, quantity: 1 },
       { sourceType: "MENU_PRODUCT", sourceId: friesRecipe.id, quantity: 1 },
       { sourceType: "MENU_PRODUCT", sourceId: pepsiRecipe.id, quantity: 1 },
@@ -156,10 +156,10 @@
     ]);
 
     const menuItems = [
-      ensureMenuItem({ name: "Crispy Chicken Sandwich", sku: "MENU-CHK-SAND", categoryId: "MCAT-SANDWICHES", recipeId: chickenSandwich.id, sellingPrice: 9.5, limitedThreshold: 20 }),
-      ensureMenuItem({ name: "Chicken Sandwich Combo", sku: "MENU-CHK-COMBO", categoryId: "MCAT-COMBOS", recipeId: chickenCombo.id, sellingPrice: 13.75, limitedThreshold: 15 }),
-      ensureMenuItem({ name: "Regular Fries", sku: "MENU-REG-FRIES", categoryId: "MCAT-SIDES", recipeId: friesRecipe.id, sellingPrice: 3.25, limitedThreshold: 25 }),
-      ensureMenuItem({ name: "20 oz Pepsi", sku: "MENU-20-PEPSI", categoryId: "MCAT-BEVERAGES", recipeId: pepsiRecipe.id, sellingPrice: 2.79, limitedThreshold: 25 })
+      ensureMenuItem({ name: "Crispy Chicken Sandwich", sku: "MENU-CHK-SAND", categoryId: "MCAT-SANDWICHES", recipeId: chickenSandwich.id, sellingPrice: 9.5, targetFoodCostPercent: 30, limitedThreshold: 20 }),
+      ensureMenuItem({ name: "Chicken Sandwich Combo", sku: "MENU-CHK-COMBO", categoryId: "MCAT-COMBOS", recipeId: chickenCombo.id, sellingPrice: 13.75, targetFoodCostPercent: 30, limitedThreshold: 15 }),
+      ensureMenuItem({ name: "Regular Fries", sku: "MENU-REG-FRIES", categoryId: "MCAT-SIDES", recipeId: friesRecipe.id, sellingPrice: 3.25, targetFoodCostPercent: 28, limitedThreshold: 25 }),
+      ensureMenuItem({ name: "20 oz Pepsi", sku: "MENU-20-PEPSI", categoryId: "MCAT-BEVERAGES", recipeId: pepsiRecipe.id, sellingPrice: 2.79, targetFoodCostPercent: 18, limitedThreshold: 25 })
     ];
 
     ensureSale({ menuItemId: menuItems[0].id, quantitySold: 24, date: today() });

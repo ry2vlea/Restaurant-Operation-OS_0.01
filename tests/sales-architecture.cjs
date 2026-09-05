@@ -5,7 +5,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const data = new Map();
 const listeners = new Map();
-const context = vm.createContext({ console, performance, Date, Map, Set,
+const context = vm.createContext({ console, performance, Date, Map, Set, structuredClone,
   localStorage: { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, String(value)), removeItem: key => data.delete(key) },
   CustomEvent: class { constructor(type, options = {}) { this.type = type; this.detail = options.detail; } },
   addEventListener(type, fn) { const list = listeners.get(type) || []; list.push(fn); listeners.set(type, list); },

@@ -3,7 +3,6 @@ const typeFilter = document.getElementById("recipeTypeFilter");
 let activeFilter = "ALL";
 
 const money = (value) => value == null ? "Incomplete" : `$${Number(value).toFixed(2)}`;
-const pct = (value) => value == null ? "-" : `${Number(value).toFixed(1)}%`;
 
 function typeLabel(type) {
   return type.replaceAll("_", " ");
@@ -23,10 +22,8 @@ function renderPrepSummary(recipe, cost) {
 
 function renderSellableSummary(recipe, cost) {
   return `
-    <p>Selling Price <strong>${money(recipe.sellingPrice)}</strong></p>
     <p>Recipe Cost <strong>${money(cost.totalCost)}</strong></p>
-    <p>Food Cost <strong>${pct(cost.foodCostPercent)}</strong></p>
-    <p>Contribution <strong>${money(cost.contribution)}</strong></p>
+    <p>Unit Cost <strong>${money(cost.unitCost)}</strong></p>
   `;
 }
 
@@ -44,7 +41,6 @@ function renderRecipeDetail(recipe, cost) {
       ${errors}
       <div class="recipe-detail-table">${rows}</div>
       <div class="recipe-total"><span>${RecipeService.recipeTypeOf(recipe) === "PREP_ITEM" ? "Batch Cost" : "Recipe Cost"}</span><strong>${money(cost.totalCost)}</strong></div>
-      ${RecipeService.recipeTypeOf(recipe) !== "PREP_ITEM" ? `<div class="recipe-total"><span>Suggested Price</span><strong>${money(cost.suggestedSellingPrice)}</strong></div>` : ""}
     </details>
   `;
 }
@@ -58,7 +54,7 @@ function renderRecipes() {
     try {
       cost = RecipeService.calculateCost(recipe.id);
     } catch (error) {
-      cost = { lines: [], totalCost: null, costPerYieldUnit: null, foodCostPercent: null, contribution: null, suggestedSellingPrice: null, missingCosts: [], errors: [error.message] };
+      cost = { lines: [], totalCost: null, costPerYieldUnit: null, unitCost: null, missingCosts: [], errors: [error.message] };
     }
     return `<article class="recipe-card recipe-card-detailed">
       <div class="recipe-card-main">

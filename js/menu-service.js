@@ -20,6 +20,17 @@
   }
   function getMenuItemById(id) { return getCalculationContext().itemById.get(id) || null; }
 
+  function targetFoodCost(value) {
+    if (value === undefined || value === null || value === "") return null;
+    const target = Number(value);
+    if (!Number.isFinite(target) || target <= 0 || target > 100) throw new Error("Target food cost must be greater than zero and at most 100%.");
+    return target;
+  }
+
+  function calculateSuggestedPrice(cost, target) {
+    return cost != null && Number(target) > 0 ? Number(cost) / (Number(target) / 100) : null;
+  }
+
   function createMenuItem(values) {
     const recipe = RecipeService.getRecipeById(values.recipeId);
     if (!values.name?.trim() || !(Number(values.sellingPrice) > 0) || !recipe) throw new Error("Name, valid Menu Recipe and selling price are required.");
@@ -32,6 +43,7 @@
       categoryId: values.categoryId || "MCAT-OTHER",
       recipeId: recipe.id,
       sellingPrice: Number(values.sellingPrice),
+      targetFoodCostPercent: targetFoodCost(values.targetFoodCostPercent),
       status: "AVAILABLE",
       manualUnavailableReason: null,
       active: true,
@@ -55,6 +67,7 @@
       ...values,
       recipeId,
       sellingPrice: Number(values.sellingPrice ?? item.sellingPrice),
+      targetFoodCostPercent: targetFoodCost(values.targetFoodCostPercent === undefined ? item.targetFoodCostPercent : values.targetFoodCostPercent),
       limitedThreshold: Number(values.limitedThreshold ?? item.limitedThreshold),
       updatedAt: new Date().toISOString()
     };
@@ -112,10 +125,13 @@
     const recipeCost = RecipeService.calculateRecipeCost(menuItem.recipeId);
     const cost = recipeCost.incomplete ? null : recipeCost.unitCost;
     const availability = calculateAvailability(menuItem);
+    const target = menuItem.targetFoodCostPercent ?? Number(window.SettingsService?.getSettings?.().targets?.foodCostPercent || localStorage.getItem("targetFoodCostPercent") || 30);
     const result = {
       ...availability,
       cost,
       incomplete: recipeCost.incomplete,
+      targetFoodCostPercent: target,
+      suggestedSellingPrice: calculateSuggestedPrice(cost, target),
       recipeType: recipe ? RecipeService.recipeTypeOf(recipe) : null,
       foodCostPercent: cost != null && menuItem.sellingPrice > 0 ? cost / menuItem.sellingPrice * 100 : null,
       contribution: cost != null ? Number(menuItem.sellingPrice || 0) - cost : null
@@ -128,8 +144,9 @@
     return getCalculationContext().items.map((item) => ({ item, metric: calculateMenuMetrics(item) }));
   }
 
-  window.MenuService = { getMenuItems, getMenuItemById, getCalculationContext, getMenuRows, createMenuItem, updateMenuItem, setManualAvailability, calculateAvailability, calculateMenuMetrics };
+  window.MenuService = { getMenuItems, getMenuItemById, getCalculationContext, getMenuRows, createMenuItem, updateMenuItem, setManualAvailability, calculateAvailability, calculateMenuMetrics, calculateSuggestedPrice };
   window.addEventListener?.("inventory:changed", () => { contextCache = null; });
   window.addEventListener?.("recipes:changed", () => { contextCache = null; });
+  window.addEventListener?.("settings:changed", () => { contextCache = null; });
   window.addEventListener?.("storage", () => { contextCache = null; });
 })();

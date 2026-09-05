@@ -46,33 +46,17 @@ function sourceOptions(component) {
   return recipeOptions(component.sourceType, component.sourceId);
 }
 
-function componentCost(component) {
-  try {
-    if (component.sourceType === "INVENTORY_ITEM") {
-      const item = InventoryService.getItemById(component.sourceId);
-      if (!item) return null;
-      const baseQuantity = InventoryService.convertToBaseUnit(item.id, Number(component.quantity), component.unitId || item.baseUnitId);
-      return baseQuantity * InventoryService.getBaseUnitCost(item);
-    }
-    const cost = RecipeService.resolveComponentCost(component.sourceType, component.sourceId);
-    if (component.sourceType === "PREP_ITEM") {
-      const recipe = RecipeService.getRecipeById(component.sourceId);
-      return cost.costPerYieldUnit == null ? null : Number(component.quantity || 0) * cost.costPerYieldUnit;
-    }
-    return cost.unitCost == null ? null : Number(component.quantity || 0) * cost.unitCost;
-  } catch (error) {
-    return null;
-  }
-}
-
 function renderComponents() {
+  let lines = [];
+  try { lines = RecipeService.calculateRecipePreview(previewRecipe()).lines; } catch {}
   document.getElementById("ingredients").innerHTML = builder.components.length ? builder.components.map((component, index) => {
+    const cost = lines[index]?.missingCost ? null : lines[index]?.cost;
     return `<div class="ingredient-row recipe-component-row">
       <select data-component="${index}" data-field="sourceType">${allowedTypes().map((type) => `<option value="${type}" ${type === component.sourceType ? "selected" : ""}>${type.replaceAll("_", " ")}</option>`).join("")}</select>
       <select data-component="${index}" data-field="sourceId">${sourceOptions(component)}</select>
       <input data-component="${index}" data-field="quantity" type="number" min="0.01" step="0.01" value="${component.quantity}">
       <select data-component="${index}" data-field="unitId">${unitOptions(component, component.unitId)}</select>
-      <div class="ingredient-cost"><strong>${componentCost(component) == null ? "Incomplete" : `$${componentCost(component).toFixed(2)}`}</strong><small>${component.sourceType.replaceAll("_", " ")}</small></div>
+      <div class="ingredient-cost"><strong data-component-cost="${index}">${cost == null ? "Incomplete" : `$${cost.toFixed(2)}`}</strong><small>${component.sourceType.replaceAll("_", " ")}</small></div>
       <button type="button" class="icon-button" data-remove="${index}" aria-label="Remove component">×</button>
     </div>`;
   }).join("") : `<div class="empty-state"><p>Add a valid component to begin costing this recipe.</p></div>`;
@@ -109,31 +93,32 @@ function previewRecipe() {
     type: builderForm.elements.recipeType.value,
     recipeType: builderForm.elements.recipeType.value,
     components: builder.components,
-    yieldQuantity: Number(builderForm.elements.yieldQuantity.value || 1),
+    yieldQuantity: Number(builderForm.elements.yieldQuantity.value),
     yieldUnitId: builderForm.elements.yieldUnitId.value,
-    sellingPrice: Number(builderForm.elements.sellingPrice.value || 0),
-    targetFoodCostPercent: Number(builderForm.elements.targetFoodCostPercent.value || 30)
+    producedInventoryItemId: builderForm.elements.recipeType.value === "PREP_ITEM" ? builderForm.elements.producedInventoryItemId.value : null
   };
 }
 
 function updateCost() {
-  const total = builder.components.reduce((sum, component) => {
-    const cost = componentCost(component);
-    return cost == null ? sum : sum + cost;
-  }, 0);
-  document.getElementById("recipeCost").textContent = `$${total.toFixed(2)}`;
+  try {
+    const cost = RecipeService.calculateRecipePreview(previewRecipe());
+    document.querySelectorAll("[data-component-cost]").forEach((element) => {
+      const line = cost.lines[Number(element.dataset.componentCost)];
+      element.textContent = line?.cost == null || line.missingCost ? "Incomplete" : `$${line.cost.toFixed(2)}`;
+    });
+    document.getElementById("recipeCost").textContent = cost.incomplete ? "Incomplete" : `$${cost.totalCost.toFixed(2)}`;
+  } catch (error) {
+    document.querySelectorAll("[data-component-cost]").forEach((element) => { element.textContent = "Incomplete"; });
+    document.getElementById("recipeCost").textContent = `Incomplete: ${error.message}`;
+  }
 }
 
 function syncRecipeType() {
   const type = builderForm.elements.recipeType.value;
   const produced = builderForm.elements.producedInventoryItemId.closest("label");
-  const price = builderForm.elements.sellingPrice.closest("label");
-  const target = builderForm.elements.targetFoodCostPercent.closest("label");
   const yieldQuantity = builderForm.elements.yieldQuantity.closest("label");
   const yieldUnit = builderForm.elements.yieldUnitId.closest("label");
   produced.hidden = type !== "PREP_ITEM";
-  price.hidden = type === "PREP_ITEM";
-  target.hidden = type === "PREP_ITEM";
   yieldQuantity.hidden = type !== "PREP_ITEM";
   yieldUnit.hidden = type !== "PREP_ITEM";
   builder.components = builder.components.filter((component) => allowedTypes().includes(component.sourceType));
@@ -165,7 +150,7 @@ document.getElementById("addIngredient").onclick = () => {
   updateCost();
 };
 builderForm.elements.recipeType.addEventListener("change", syncRecipeType);
-["yieldQuantity", "yieldUnitId", "sellingPrice", "targetFoodCostPercent"].forEach((name) => {
+["yieldQuantity", "yieldUnitId", "producedInventoryItemId"].forEach((name) => {
   builderForm.elements[name].addEventListener("input", updateCost);
 });
 builderForm.onsubmit = (event) => {
@@ -173,6 +158,7 @@ builderForm.onsubmit = (event) => {
   try {
     const values = Object.fromEntries(new FormData(builderForm));
     values.type = values.recipeType;
+    if (values.type !== "PREP_ITEM") values.producedInventoryItemId = null;
     RecipeService.createRecipe(values, builder.components);
     showToast("Recipe created.");
     setTimeout(() => { location.href = "recipes.html"; }, 350);
