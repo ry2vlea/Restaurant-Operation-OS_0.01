@@ -93,7 +93,7 @@
     if (menuItem?.id && context.availabilityByItem.has(menuItem.id)) return context.availabilityByItem.get(menuItem.id);
     const inventoryContext = InventoryService.getCalculationContext();
     const recipe = RecipeService.getRecipeById(menuItem?.recipeId);
-    if (!menuItem || !recipe || !["MENU_PRODUCT", "COMBO"].includes(RecipeService.recipeTypeOf(recipe))) return { servings: 0, status: "UNAVAILABLE", limitingIngredient: null, ingredientAvailability: [] };
+    if (!menuItem || !recipe || recipe.active === false || !["MENU_PRODUCT", "COMBO"].includes(RecipeService.recipeTypeOf(recipe))) return { servings: 0, status: "UNAVAILABLE", limitingIngredient: null, ingredientAvailability: [] };
     let usage = [];
     try {
       usage = RecipeService.resolveInventoryUsage(RecipeService.recipeTypeOf(recipe), recipe.id, 1);
@@ -122,7 +122,9 @@
     const context = getCalculationContext();
     if (menuItem?.id && context.metricsByItem.has(menuItem.id)) return context.metricsByItem.get(menuItem.id);
     const recipe = RecipeService.getRecipeById(menuItem.recipeId);
-    const recipeCost = RecipeService.calculateRecipeCost(menuItem.recipeId);
+    let recipeCost;
+    try { recipeCost = RecipeService.calculateRecipeCost(menuItem.recipeId); }
+    catch (error) { recipeCost = { incomplete: true, unitCost: null, errors: [error.message] }; }
     const cost = recipeCost.incomplete ? null : recipeCost.unitCost;
     const availability = calculateAvailability(menuItem);
     const target = menuItem.targetFoodCostPercent ?? Number(window.SettingsService?.getSettings?.().targets?.foodCostPercent || localStorage.getItem("targetFoodCostPercent") || 30);

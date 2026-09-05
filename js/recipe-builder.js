@@ -140,6 +140,10 @@
     event.preventDefault(); if (state.saving) return;
     try {
       if (state.trackProduction && !state.draft.producedInventoryItemId) throw new Error('Select the produced Inventory Item.');
+      if (state.mode === 'edit') {
+        const current = RecipeService.getRecipeById(state.recipeId);
+        if (!current || current.updatedAt !== existing.updatedAt) throw new Error('This recipe changed in another session. Reload before saving to avoid overwriting newer changes.');
+      }
       RecipeService.validateRecipe(state.draft);
       state.saving = true; $('saveRecipe').disabled = true;
       if (state.mode === 'edit') RecipeService.updateRecipe(state.recipeId, state.draft);
