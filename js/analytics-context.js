@@ -45,7 +45,7 @@
       recipeIngredients,
       production: readArray("productionBatches"),
       menuItems,
-      menuSales: readArray("menuSales"),
+      menuSales: SalesService.getSales(),
       issues: readArray("issues"),
       tasks: readArray("tasks"),
       shifts: readArray("shifts"),

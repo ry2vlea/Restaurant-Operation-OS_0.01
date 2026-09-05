@@ -26,12 +26,11 @@
   }
 
   function salesFor(date) {
-    const perf = window.BusinessPerformanceService?.getByDate?.(date);
-    return Number(perf?.netSales || 0);
+    return SalesService.calculateMetrics(date).netSales;
   }
 
   function theoreticalUsageCost(date) {
-    return TheoreticalUsageService.calculateTheoreticalUsage(date).reduce((total, entry) => total + Number(entry.baseQuantity || 0) * InventoryService.getBaseUnitCost(entry.item), 0);
+    return TheoreticalUsageService.calculateForDate(date).reduce((total, entry) => total + entry.theoreticalCost, 0);
   }
 
   function actualCogS(date) {

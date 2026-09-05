@@ -19,11 +19,11 @@
           </label>
           <label>
             Net Sales
-            <input name="netSales" type="number" min="0" step="0.01">
+            <input name="netSales" readonly type="number" min="0" step="0.01">
           </label>
           <label>
             Transactions
-            <input name="transactions" type="number" min="0">
+            <input name="transactions" readonly type="number" min="0">
           </label>
           <label>
             Labor Hours
@@ -50,6 +50,7 @@
     <script src="js/inventory-service.js"></script>
     <script src="js/recipe-service.js"></script>
     <script src="js/menu-service.js"></script>
+    <script src="js/sales-service.js"></script>
     <script src="js/theoretical-usage-service.js"></script>
     <script src="js/settings-service.js"></script>
     <script src="js/analytics-context.js"></script>
@@ -63,7 +64,7 @@
       AppHeader.init({
         section: "BUSINESS PERFORMANCE",
         title: "Business Performance",
-        description: "Daily sales and labor input with derived operating metrics.",
+        description: "Recorded sales and labor input with derived operating metrics.",
         backHref: "index.html",
         backLabel: "Dashboard",
         showDateSelector: true

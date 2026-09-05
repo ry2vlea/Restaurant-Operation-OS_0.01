@@ -21,7 +21,10 @@
   }
 
   function getByDate(date = today()) {
-    return read().find((record) => record.date === date) || null;
+    const record = read().find((record) => record.date === date);
+    const metrics = SalesService.calculateMetrics(date);
+    return record || metrics.unitsSold || metrics.transactions
+      ? { ...record, date, netSales: metrics.netSales, transactions: metrics.transactions } : null;
   }
 
   function saveRecord(values) {
@@ -29,10 +32,9 @@
     const now = new Date().toISOString();
     const existing = getByDate(date);
     const record = {
+      ...read().find((value) => value.date === date),
       id: existing?.id || `PERF-${date.replaceAll("-", "")}`,
       date,
-      netSales: Number(values.netSales || 0),
-      transactions: Number(values.transactions || 0),
       laborHours: Number(values.laborHours || 0),
       laborDollars: Number(values.laborDollars || 0),
       notes: values.notes || "",
@@ -60,8 +62,10 @@
   }
 
   function recordsInRange(startDate, endDate) {
-    return read().filter((record) => (!startDate || record.date >= startDate) && (!endDate || record.date <= endDate)).sort((a, b) => b.date.localeCompare(a.date));
+    const dates = new Set([...read().map((record) => record.date), ...SalesService.getSales().map((sale) => sale.date)]);
+    return [...dates].filter((date) => (!startDate || date >= startDate) && (!endDate || date <= endDate))
+      .map(getByDate).sort((a, b) => b.date.localeCompare(a.date));
   }
 
-  window.BusinessPerformanceService = { getRecords: read, getByDate, saveRecord, derive, recordsInRange };
+  window.BusinessPerformanceService = { getRecords: recordsInRange, getByDate, saveRecord, derive, recordsInRange };
 })();

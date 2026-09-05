@@ -34,16 +34,8 @@
   }
 
   function theoreticalUsageByItem(startDate, endDate) {
-    const totals = new Map();
-    AnalyticsContext.build().menuSales
-      .filter((sale) => (!startDate || sale.date >= startDate) && (!endDate || sale.date <= endDate))
-      .forEach((sale) => {
-        (sale.ingredientSnapshot || []).forEach((ingredient) => {
-          const used = Number(ingredient.baseQuantityPerServing || 0) * Number(sale.quantitySold || 0);
-          totals.set(ingredient.inventoryItemId, (totals.get(ingredient.inventoryItemId) || 0) + used);
-        });
-      });
-    return totals;
+    return new Map(TheoreticalUsageService.calculateForDate(startDate, endDate)
+      .map((entry) => [entry.inventoryItemId, entry.quantityUsed]));
   }
 
   function calculate(startCountId, endCountId) {

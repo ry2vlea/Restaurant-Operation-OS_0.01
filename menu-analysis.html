@@ -16,6 +16,9 @@
           <p>Review current recipe cost, contribution and operational availability.</p>
         </div>
       </header>
+      <section class="recipe-panel">
+        <label>Business Date <input id="analysisDate" type="date"></label>
+      </section>
       <section id="analysisMetrics" class="inventory-metrics"></section>
       <section class="recipe-panel">
         <div class="section-header">
@@ -28,24 +31,18 @@
         <div id="analysisList" class="inventory-table"></div>
       </section>
       <section class="recipe-panel">
+        <h2>Sales Performance</h2>
+        <div id="salesPerformance" class="inventory-table"></div>
+      </section>
+      <section class="recipe-panel">
         <h2>Theoretical Usage</h2>
-        <div class="form-grid">
-          <label>
-            Menu Item
-            <select id="salesMenuItem"></select>
-          </label>
-          <label>
-            Quantity Sold
-            <input id="salesQuantity" type="number" min="0" value="0">
-          </label>
-          <button class="primary-button" id="saveSale">Save Sales</button>
-        </div>
         <div id="usageList" class="movement-list"></div>
       </section>
     </main>
     <script src="js/inventory-service.js"></script>
     <script src="js/recipe-service.js"></script>
     <script src="js/menu-service.js"></script>
+    <script src="js/sales-service.js"></script>
     <script src="js/theoretical-usage-service.js"></script>
     <script src="js/components/ui-feedback.js"></script>
     <script src="js/menu-analysis.js"></script>

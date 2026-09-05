@@ -207,21 +207,12 @@ function renderSalesTable() {
     getMenuItems();
 
 
-  const savedSales =
-    SalesService
-      .getSales(date);
 
 
-  const savedByMenuItem =
-    new Map(
-      savedSales.map(
-        (sale) => [
-          sale.menuItemId,
-          sale
-        ]
-      )
-    );
 
+  const savedByMenuItem = new Map(SalesService.getMenuMix(date).map((entry) => [
+    entry.sale.menuItemId, { ...entry.sale, quantitySold: entry.quantity, sellingPriceAtSale: entry.quantity ? entry.salesAmount / entry.quantity : 0, theoreticalUnitCostAtSale: entry.quantity ? entry.theoreticalCost / entry.quantity : 0 }
+  ]));
 
   if (!items.length) {
 
@@ -296,26 +287,7 @@ function renderSalesTable() {
         );
 
 
-      let unitCost = 0;
-
-
-      try {
-
-        unitCost =
-          Number(
-            RecipeService
-              .calculateRecipeCost(
-                item.recipeId
-              )
-              .unitCost || 0
-          );
-
-      } catch (error) {
-
-        unitCost = 0;
-
-      }
-
+      const unitCost = SalesService.getSaleValues(existing || { menuItemId: item.id }).unitCost;
 
       return `
 
@@ -453,12 +425,7 @@ function updateRowTotal(input) {
     );
 
 
-  const sales =
-    quantity *
-    Number(
-      item.sellingPrice || 0
-    );
-
+  const sales = SalesService.previewSale(salesDate.value, menuItemId, quantity).netSales;
 
   const row =
     input.closest(
@@ -485,109 +452,10 @@ function updateRowTotal(input) {
 
 function renderPreviewMetrics() {
 
-  const inputs =
-    [
-      ...document.querySelectorAll(
-        ".sales-quantity-input"
-      )
-    ];
-
-
-  let unitsSold = 0;
-
-  let netSales = 0;
-
-  let theoreticalCOGS = 0;
-
-
-  inputs.forEach(
-    (input) => {
-
-      const item =
-        MenuService
-          .getMenuItemById(
-            input.dataset.menuItemId
-          );
-
-
-      if (!item) {
-        return;
-      }
-
-
-      const quantity =
-        Math.max(
-          0,
-          Number(
-            input.value || 0
-          )
-        );
-
-
-      let unitCost = 0;
-
-
-      try {
-
-        unitCost =
-          Number(
-            RecipeService
-              .calculateRecipeCost(
-                item.recipeId
-              )
-              .unitCost || 0
-          );
-
-      } catch (error) {
-
-        unitCost = 0;
-
-      }
-
-
-      unitsSold +=
-        quantity;
-
-
-      netSales +=
-        quantity *
-        Number(
-          item.sellingPrice || 0
-        );
-
-
-      theoreticalCOGS +=
-        quantity *
-        unitCost;
-
-    }
-  );
-
-
-  const transactions =
-    Math.max(
-      0,
-      Number(
-        transactionsInput.value || 0
-      )
-    );
-
-
-  const averageTicket =
-    transactions > 0
-      ? netSales /
-        transactions
-      : 0;
-
-
-  const foodCost =
-    netSales > 0
-      ? (
-          theoreticalCOGS /
-          netSales
-        ) * 100
-      : 0;
-
+  const { unitsSold, netSales, theoreticalCOGS, transactions, averageTicket,
+    theoreticalFoodCostPercent: foodCost } = SalesService.previewDailySales({
+      date: salesDate.value, rows: collectSalesRows(), transactions: Math.max(0, Number(transactionsInput.value || 0))
+    });
 
   const cards = [
 

@@ -51,5 +51,7 @@ function renderPerformance() {
   }).join("") : `<div class="empty-state"><p>No business performance has been entered for this period.</p></div>`;
 }
 
+window.addEventListener("sales:changed", () => { syncForm(); renderPerformance(); });
+window.addEventListener("storage", () => { syncForm(); renderPerformance(); });
 syncForm();
 renderPerformance();

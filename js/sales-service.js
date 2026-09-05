@@ -26,8 +26,7 @@
       new CustomEvent("sales:changed")
     );
 
-    // We keep this event because your current
-    // TheoreticalUsageService already uses menuSales.
+    // Temporary compatibility for existing sales listeners.
     window.dispatchEvent(
       new CustomEvent("menu-sales:changed")
     );
@@ -88,6 +87,11 @@
     quantitySold,
     existingSale = null
   }) {
+
+    // Quantity edits must not replace the historical recipe or price.
+    if (existingSale) {
+      return { ...existingSale, quantitySold: Number(quantitySold), updatedAt: new Date().toISOString() };
+    }
 
     const item =
       MenuService.getMenuItemById(menuItemId);
@@ -208,18 +212,18 @@
   // GET SALES
   // --------------------------------------------------
 
-  function getSales(date = null) {
+  function getSales(date = null, endDate = date) {
 
     const sales =
       readSales();
 
-    if (!date) {
+    if (!date && !endDate) {
       return sales;
     }
 
     return sales.filter(
       (sale) =>
-        sale.date === date
+        (!date || sale.date >= date) && (!endDate || sale.date <= endDate)
     );
   }
 
@@ -240,108 +244,29 @@
   // SINGLE SALE
   // --------------------------------------------------
 
-  function saveSale(values) {
-
-    const date =
-      values.date ||
-      today();
-
-    const quantity =
-      Number(
-        values.quantitySold || 0
-      );
-
-
-    if (!values.menuItemId) {
-      throw new Error(
-        "Menu item is required."
-      );
-    }
-
-
-    if (quantity < 0) {
-      throw new Error(
-        "Quantity cannot be negative."
-      );
-    }
-
-
-    const sales =
-      readSales();
-
-
-    const existingSale =
-      sales.find(
-        (sale) =>
-          sale.date === date &&
-          sale.menuItemId ===
-            values.menuItemId
-      );
-
-
-    /*
-      If quantity = 0,
-      remove the sale from that day.
-    */
-
-    if (quantity === 0) {
-
-      const updated =
-        sales.filter(
-          (sale) =>
-            !(
-              sale.date === date &&
-              sale.menuItemId ===
-                values.menuItemId
-            )
-        );
-
-      writeSales(updated);
-
-      return null;
-    }
-
-
-    const sale =
-      buildSale({
-        date,
-        menuItemId:
-          values.menuItemId,
-        quantitySold:
-          quantity,
-        existingSale
-      });
-
-
-    let updatedSales;
-
-
-    if (existingSale) {
-
-      updatedSales =
-        sales.map(
-          (existing) =>
-            existing.id ===
-            existingSale.id
-              ? sale
-              : existing
-        );
-
-    } else {
-
-      updatedSales = [
-        ...sales,
-        sale
-      ];
-
-    }
-
-
-    writeSales(updatedSales);
-
-    return sale;
+  // Old Menu Analysis appended multiple sales for the same item/day.
+  // Keep those snapshots; increases extend the last entry, decreases trim newest first.
+  function buildSalesForQuantity(date, menuItemId, quantity, existing) {
+    if (!quantity) return [];
+    if (!existing.length) return [buildSale({ date, menuItemId, quantitySold: quantity })];
+    let remaining = quantity;
+    return existing.flatMap((sale, index) => {
+      const quantitySold = index === existing.length - 1 ? remaining : Math.min(remaining, Number(sale.quantitySold || 0));
+      remaining -= quantitySold;
+      return quantitySold > 0 ? [buildSale({ date, menuItemId, quantitySold, existingSale: sale })] : [];
+    });
   }
 
+  function saveSale(values) {
+    const date = values.date || today();
+    const quantity = Number(values.quantitySold ?? 0);
+    if (!values.menuItemId || !Number.isFinite(quantity) || quantity < 0) throw new Error("Menu item and valid non-negative quantity are required.");
+    const sales = readSales();
+    const matches = (sale) => sale.date === date && sale.menuItemId === values.menuItemId;
+    const updated = buildSalesForQuantity(date, values.menuItemId, quantity, sales.filter(matches));
+    writeSales([...sales.filter((sale) => !matches(sale)), ...updated]);
+    return updated[updated.length - 1] || null;
+  }
 
   // --------------------------------------------------
   // BULK DAILY SALES
@@ -387,34 +312,30 @@
       );
 
 
-    const existingToday =
-      new Map(
-        allSales
-          .filter(
-            (sale) =>
-              sale.date === date
-          )
-          .map(
-            (sale) => [
-              sale.menuItemId,
-              sale
-            ]
-          )
-      );
-
+    const existingToday = new Map();
+    allSales.filter((sale) => sale.date === date).forEach((sale) => {
+      const entries = existingToday.get(sale.menuItemId) || [];
+      entries.push(sale);
+      existingToday.set(sale.menuItemId, entries);
+    });
 
     const dailySales = [];
+    const seen = new Set();
+    const transactionCount = Number(transactions);
+    if (!Number.isInteger(transactionCount) || transactionCount < 0) throw new Error("Transactions must be a non-negative integer.");
 
 
     rows.forEach((row) => {
+      if (!row.menuItemId || seen.has(row.menuItemId)) throw new Error("Each menu item must appear once.");
+      seen.add(row.menuItemId);
 
       const quantity =
         Number(
-          row.quantitySold || 0
+          row.quantitySold ?? 0
         );
 
 
-      if (quantity < 0) {
+      if (!Number.isFinite(quantity) || quantity < 0) {
         throw new Error(
           "Quantity sold cannot be negative."
         );
@@ -430,38 +351,15 @@
       }
 
 
-      const sale =
-        buildSale({
-          date,
-
-          menuItemId:
-            row.menuItemId,
-
-          quantitySold:
-            quantity,
-
-          existingSale:
-            existingToday.get(
-              row.menuItemId
-            )
-        });
-
-
-      dailySales.push(sale);
+      dailySales.push(...buildSalesForQuantity(date, row.menuItemId, quantity, existingToday.get(row.menuItemId) || []));
 
     });
 
 
-    writeSales([
-      ...otherDates,
-      ...dailySales
-    ]);
-
-
-    saveDaySummary({
-      date,
-      transactions
-    });
+    // Sales for retired items are absent from the entry form; retain them.
+    existingToday.forEach((entries, id) => { if (!seen.has(id)) dailySales.push(...entries); });
+    saveDaySummary({ date, transactions, notify: false });
+    writeSales([...otherDates, ...dailySales]);
 
 
     return dailySales;
@@ -474,8 +372,10 @@
 
   function saveDaySummary({
     date,
-    transactions = 0
+    transactions = 0,
+    notify = true
   }) {
+    if (!date || !Number.isInteger(Number(transactions)) || Number(transactions) < 0) throw new Error("Date and non-negative integer transactions are required.");
 
     const summaries =
       readSummaries();
@@ -526,9 +426,21 @@
     }
 
 
+    if (notify) {
+      window.dispatchEvent(new CustomEvent("sales:changed"));
+      window.dispatchEvent(new CustomEvent("menu-sales:changed"));
+    }
     return summary;
   }
 
+
+  // Read-only compatibility for historical manually entered daily totals.
+  function getLegacySummaries() {
+    try {
+      const records = JSON.parse(localStorage.getItem("businessPerformance"));
+      return Array.isArray(records) ? records : [];
+    } catch { return []; }
+  }
 
   function getDaySummary(date) {
 
@@ -538,7 +450,7 @@
           summary.date === date
       ) || {
         date,
-        transactions: 0
+        transactions: Number(getLegacySummaries().find((record) => record.date === date)?.transactions || 0)
       }
     );
   }
@@ -548,176 +460,76 @@
   // SALES METRICS
   // --------------------------------------------------
 
-  function calculateMetrics(date) {
-
-    const sales =
-      getSales(date);
-
-
-    const summary =
-      getDaySummary(date);
-
-
-    const totals =
-      sales.reduce(
-        (result, sale) => {
-
-          const quantity =
-            Number(
-              sale.quantitySold || 0
-            );
-
-
-          const price =
-            Number(
-              sale.sellingPriceAtSale || 0
-            );
-
-
-          const unitCost =
-            Number(
-              sale.theoreticalUnitCostAtSale || 0
-            );
-
-
-          result.unitsSold +=
-            quantity;
-
-
-          result.netSales +=
-            quantity * price;
-
-
-          result.theoreticalCOGS +=
-            quantity * unitCost;
-
-
-          return result;
-
-        },
-        {
-          unitsSold: 0,
-          netSales: 0,
-          theoreticalCOGS: 0
-        }
-      );
-
-
-    const transactions =
-      Number(
-        summary.transactions || 0
-      );
-
-
-    const averageTicket =
-      transactions > 0
-        ? totals.netSales /
-          transactions
-        : 0;
-
-
-    const theoreticalFoodCostPercent =
-      totals.netSales > 0
-        ? (
-            totals.theoreticalCOGS /
-            totals.netSales
-          ) * 100
-        : 0;
-
-
-    return {
-      ...totals,
-
-      transactions,
-
-      averageTicket,
-
-      theoreticalFoodCostPercent
-    };
+  // Old records without financial snapshots use current menu/recipe values.
+  function getSaleValues(sale) {
+    const item = MenuService.getMenuItemById(sale.menuItemId);
+    const sellingPrice = Number(sale.sellingPriceAtSale ?? item?.sellingPrice ?? 0);
+    const unitCost = sale.theoreticalUnitCostAtSale != null
+      ? Number(sale.theoreticalUnitCostAtSale)
+      : Number(RecipeService.calculateRecipeCost(sale.recipeIdAtSale || item?.recipeId).unitCost || 0);
+    return { sellingPrice, unitCost };
   }
 
-
-  // --------------------------------------------------
-  // MENU MIX
-  // --------------------------------------------------
-
-  function getMenuMix(date) {
-
-    const sales =
-      getSales(date);
-
-
-    const metrics =
-      calculateMetrics(date);
-
-
-    return sales
-      .map((sale) => {
-
-        const item =
-          MenuService.getMenuItemById(
-            sale.menuItemId
-          );
-
-
-        const quantity =
-          Number(
-            sale.quantitySold || 0
-          );
-
-
-        const salesAmount =
-          quantity *
-          Number(
-            sale.sellingPriceAtSale || 0
-          );
-
-
-        const theoreticalCost =
-          quantity *
-          Number(
-            sale.theoreticalUnitCostAtSale || 0
-          );
-
-
-        const contribution =
-          salesAmount -
-          theoreticalCost;
-
-
-        const salesMixPercent =
-          metrics.netSales > 0
-            ? (
-                salesAmount /
-                metrics.netSales
-              ) * 100
-            : 0;
-
-
-        return {
-          sale,
-
-          item,
-
-          quantity,
-
-          salesAmount,
-
-          theoreticalCost,
-
-          contribution,
-
-          salesMixPercent
-        };
-
-      })
-      .sort(
-        (a, b) =>
-          b.salesAmount -
-          a.salesAmount
-      );
+  function calculateMetrics(date, endDate = date, previewSales = null, previewTransactions = null) {
+    const sales = previewSales || getSales(date, endDate);
+    const totals = sales.reduce((result, sale) => {
+      const quantity = Number(sale.quantitySold || 0);
+      const { sellingPrice, unitCost } = getSaleValues(sale);
+      result.unitsSold += quantity;
+      result.netSales += quantity * sellingPrice;
+      result.theoreticalCOGS += quantity * unitCost;
+      return result;
+    }, { unitsSold: 0, netSales: 0, theoreticalCOGS: 0 });
+    const summaries = readSummaries();
+    const inRange = (record) => (!date || record.date >= date) && (!endDate || record.date <= endDate);
+    const legacy = getLegacySummaries().filter(inRange);
+    if (!previewSales) {
+      legacy.filter((record) => !sales.some((sale) => sale.date === record.date) && !summaries.some((summary) => summary.date === record.date))
+        .forEach((record) => { totals.netSales += Number(record.netSales || 0); });
+    }
+    const transactions = previewTransactions ?? [...summaries.filter(inRange),
+      ...legacy.filter((record) => !summaries.some((summary) => summary.date === record.date))]
+      .reduce((total, summary) => total + Number(summary.transactions || 0), 0);
+    return { ...totals, transactions,
+      averageTicket: transactions > 0 ? totals.netSales / transactions : 0,
+      theoreticalFoodCostPercent: totals.netSales > 0 ? totals.theoreticalCOGS / totals.netSales * 100 : 0 };
   }
 
+  function previewSale(date, menuItemId, quantity) {
+    const sales = buildSalesForQuantity(date, menuItemId, quantity,
+      getSales(date).filter((sale) => sale.menuItemId === menuItemId));
+    return calculateMetrics(date, date, sales, 0);
+  }
+
+  function previewDailySales({ date, rows, transactions = 0 }) {
+    const existing = getSales(date);
+    const ids = new Set(rows.map((row) => row.menuItemId));
+    const sales = existing.filter((sale) => !ids.has(sale.menuItemId));
+    rows.forEach((row) => sales.push(...buildSalesForQuantity(date, row.menuItemId,
+      Math.max(0, Number(row.quantitySold || 0)), existing.filter((sale) => sale.menuItemId === row.menuItemId))));
+    return calculateMetrics(date, date, sales, transactions);
+  }
+
+  function getMenuMix(date, endDate = date) {
+    const groups = new Map();
+    getSales(date, endDate).forEach((sale) => {
+      const entry = groups.get(sale.menuItemId) || {
+        sale, item: MenuService.getMenuItemById(sale.menuItemId),
+        quantity: 0, salesAmount: 0, theoreticalCost: 0
+      };
+      const { sellingPrice, unitCost } = getSaleValues(sale);
+      const quantity = Number(sale.quantitySold || 0);
+      entry.quantity += quantity;
+      entry.salesAmount += quantity * sellingPrice;
+      entry.theoreticalCost += quantity * unitCost;
+      groups.set(sale.menuItemId, entry);
+    });
+    const netSales = [...groups.values()].reduce((total, entry) => total + entry.salesAmount, 0);
+    return [...groups.values()].map((entry) => ({ ...entry,
+      contribution: entry.salesAmount - entry.theoreticalCost,
+      salesMixPercent: netSales > 0 ? entry.salesAmount / netSales * 100 : 0
+    })).sort((a, b) => b.salesAmount - a.salesAmount);
+  }
 
   // --------------------------------------------------
   // DELETE
@@ -752,6 +564,9 @@
     getDaySummary,
     saveDaySummary,
 
+    previewSale,
+    previewDailySales,
+    getSaleValues,
     calculateMetrics,
     getMenuMix,
 

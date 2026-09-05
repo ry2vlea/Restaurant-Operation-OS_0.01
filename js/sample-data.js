@@ -65,9 +65,9 @@
   }
 
   function ensureSale(values) {
-    if (!window.TheoreticalUsageService) return null;
-    const existing = TheoreticalUsageService.getSales(values.date).find((sale) => sale.menuItemId === values.menuItemId);
-    return existing || TheoreticalUsageService.saveSale(values);
+    if (!window.SalesService) return null;
+    const existing = SalesService.getSales(values.date).find((sale) => sale.menuItemId === values.menuItemId);
+    return existing || SalesService.saveSale(values);
   }
 
   function ensureEquipment(values) {
@@ -175,7 +175,8 @@
     ensureTask({ title: "Confirm tomorrow bun order", description: "Review sales trend and confirm bakery order quantity.", category: "INVENTORY", priority: "LOW", assignedTo: "Jordan Lee", dueDate: today(1), dueTime: "10:00", relatedInventoryItemId: items.buns.id });
 
     if (window.BusinessPerformanceService && !BusinessPerformanceService.getByDate(today())) {
-      BusinessPerformanceService.saveRecord({ date: today(), netSales: 8420.18, transactions: 612, laborHours: 126.5, laborDollars: 1718.44, notes: "Sample operating day entered by demo loader." });
+      SalesService.saveDaySummary({ date: today(), transactions: 612 });
+      BusinessPerformanceService.saveRecord({ date: today(), laborHours: 126.5, laborDollars: 1718.44, notes: "Sample operating day entered by demo loader." });
     }
 
     const fryer = ensureEquipment({ name: "Fryer #2", category: "COOKING", location: "Kitchen", manufacturer: "Pitco", model: "SG14", serialNumber: "FRY-02", status: "ATTENTION", notes: "Oil recovery slower than normal during lunch." });
