@@ -260,6 +260,8 @@
       lines,
       totalCost,
       unitCost,
+      menuProductsCost: lines.filter(line => line.component.sourceType === sourceTypes.MENU_PRODUCT).some(line => line.missingCost || line.cost == null) ? null : lines.filter(line => line.component.sourceType === sourceTypes.MENU_PRODUCT).reduce((total, line) => total + line.cost, 0),
+      inventoryCost: lines.filter(line => line.component.sourceType === sourceTypes.INVENTORY_ITEM).some(line => line.missingCost || line.cost == null) ? null : lines.filter(line => line.component.sourceType === sourceTypes.INVENTORY_ITEM).reduce((total, line) => total + line.cost, 0),
       costPerYieldUnit,
       costPerYieldBaseUnit: costPerYieldUnit,
       yieldBaseQuantity: Number(recipe.yieldQuantity || 0),
@@ -428,42 +430,72 @@
   }
 
   function calculateRecipePreview(values, components) {
-    const recipe = prepareRecipe(values, components);
-    return calculateCost("__PREVIEW__", { recipe, cache: new Map() });
+    const recipe = normalizeRecipe({ ...values, components: components ?? values.components ?? [] });
+    validateRecipe(recipe);
+    return calculateCost(recipe.id || "__PREVIEW__", { recipe, cache: new Map() });
+  }
+
+  function getDependents(recipeId) {
+    return getRecipes().filter((recipe) => recipe.components.some((component) =>
+      component.sourceType !== sourceTypes.INVENTORY_ITEM && component.sourceId === recipeId));
+  }
+
+  function getComponentUnits(component) {
+    return InventoryService.getUnits().filter((unit) => {
+      try {
+        if (component.sourceType === sourceTypes.INVENTORY_ITEM) {
+          InventoryService.convertToBaseUnit(component.sourceId, 1, unit.id);
+        } else if (component.sourceType === sourceTypes.PREP_ITEM) {
+          const recipe = getRecipeById(component.sourceId);
+          if (!recipe) return false;
+          convertYieldQuantity(recipe, 1, unit.id);
+          // New UI choices distinguish weight ounces from fluid ounces.
+          const weight = ["UNIT-OZ", "UNIT-LB"];
+          const volume = ["UNIT-FLOZ", "UNIT-QT", "UNIT-GAL"];
+          if ((weight.includes(recipe.yieldUnitId) && volume.includes(unit.id)) ||
+              (volume.includes(recipe.yieldUnitId) && weight.includes(unit.id))) return false;
+        } else if (component.sourceType !== sourceTypes.MENU_PRODUCT || unit.id !== "UNIT-EA") return false;
+        return true;
+      } catch { return false; }
+    });
+  }
+
+  function getRecipeHealth(values, components) {
+    const warnings = [];
+    let cost = null;
+    try { cost = calculateRecipePreview(values, components); }
+    catch (error) { warnings.push({ type: "INVALID_RECIPE", severity: "error", message: error.message }); }
+    if (cost) warnings.push(...cost.missingCosts.map((issue) => ({ ...issue, severity: "warning", message: `${issue.name}: missing inventory cost.` })));
+    const seen = new Set();
+    function check(recipe) {
+      if (recipe.id && seen.has(recipe.id)) return;
+      if (recipe.id) seen.add(recipe.id);
+      (recipe.components || []).forEach((component) => {
+        const source = component.sourceType === sourceTypes.INVENTORY_ITEM
+          ? InventoryService.getItemById(component.sourceId) : getRecipeById(component.sourceId);
+        if (source?.active === false) warnings.push({ type: "INACTIVE_COMPONENT", severity: "warning", sourceId: source.id, message: `${source.name}: inactive component.` });
+        if (source && component.sourceType !== sourceTypes.INVENTORY_ITEM) check(source);
+      });
+    }
+    check({ ...values, components: components ?? values.components });
+    if (values.producedInventoryItemId) {
+      const output = InventoryService.getItemById(values.producedInventoryItemId);
+      if (output?.active === false) warnings.push({ type: "INACTIVE_INVENTORY", severity: "warning", message: `${output.name}: produced inventory is inactive.` });
+    }
+    return { valid: !warnings.some((warning) => warning.severity === "error"), cost, warnings };
   }
 
   function getRecipeWarnings(recipeId) {
     const recipe = getRecipeById(recipeId);
-    if (!recipe) return [{ type: "INVALID_RECIPE", message: "Recipe not found." }];
-    const warnings = [];
-    try { validateRecipe(recipe); } catch (error) { warnings.push({ type: "INVALID_RECIPE", message: error.message }); }
-    try {
-      const cost = calculateRecipeCost(recipeId);
-      warnings.push(...cost.missingCosts);
-      const seen = new Set();
-      function check(current) {
-        if (seen.has(current.id)) return;
-        seen.add(current.id);
-        if (!current.active) warnings.push({ type: "INACTIVE_RECIPE", sourceId: current.id, name: current.name });
-        current.components.forEach((component) => {
-          if (component.sourceType === sourceTypes.INVENTORY_ITEM) {
-            const item = InventoryService.getItemById(component.sourceId);
-            if (item?.active === false) warnings.push({ type: "INACTIVE_INVENTORY", sourceId: item.id, name: item.name });
-          } else {
-            const child = getRecipeById(component.sourceId);
-            if (child) check(child);
-          }
-        });
-      }
-      check(recipe);
-    } catch (error) {
-      if (!warnings.some((warning) => warning.message === error.message)) warnings.push({ type: "INVALID_RECIPE", message: error.message });
-    }
-    return warnings;
+    return recipe ? getRecipeHealth(recipe).warnings : [{ type: "INVALID_RECIPE", severity: "error", message: "Recipe not found." }];
   }
 
   function deactivateRecipe(id) {
-    return updateRecipe(id, { active: false });
+    const recipe = readRecipesRaw().find((value) => value.id === id);
+    if (!recipe) throw new Error("Recipe not found.");
+    const updated = { ...recipe, active: false, version: Number(recipe.version || 1) + (recipe.active === false ? 0 : 1), updatedAt: new Date().toISOString() };
+    saveRecipes(readRecipesRaw().map((value) => value.id === id ? updated : value));
+    return getRecipeById(id);
   }
 
   function calculateRecipeCost(recipeId) {
@@ -485,6 +517,9 @@
     resolveInventoryUsage,
     calculateRecipePreview,
     getRecipeWarnings,
+    getRecipeHealth,
+    getDependents,
+    getComponentUnits,
     convertYieldQuantity,
     validateRecipe,
     getCalculationContext,

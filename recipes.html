@@ -1,39 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Recipes | Restaurant OS</title>
-    <link rel="stylesheet" href="css/app.css">
-  </head>
-  <body>
-    <main class="main recipe-main">
-      <header class="topbar">
-        <div>
-          <button class="back-button" onclick="location.href='index.html'">← Dashboard</button>
-          <p class="eyebrow">MENU & RECIPES</p>
-          <h1>Recipes</h1>
-          <p>Define prep items, menu products and combos as inventory consumption models.</p>
-        </div>
-        <div class="inventory-actions">
-          <button class="secondary-button" onclick="location.href='menu.html'">Menu</button>
-          <button class="secondary-button" onclick="location.href='production.html'">Production</button>
-          <button class="primary-button" id="newRecipe">+ New Recipe</button>
-        </div>
-      </header>
-      <section class="recipe-panel recipe-filter-panel">
-        <div class="segmented-controls" id="recipeTypeFilter">
-          <button class="active" type="button" data-recipe-filter="ALL">All</button>
-          <button type="button" data-recipe-filter="PREP_ITEM">Prep Items</button>
-          <button type="button" data-recipe-filter="MENU_PRODUCT">Menu Products</button>
-          <button type="button" data-recipe-filter="COMBO">Combos</button>
-        </div>
-      </section>
-      <section id="recipeList" class="recipe-list"></section>
-    </main>
-    <script src="js/inventory-service.js"></script>
-    <script src="js/recipe-service.js"></script>
-    <script src="js/components/ui-feedback.js"></script>
-    <script src="js/recipes.js"></script>
-  </body>
-</html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recipes | Restaurant OS</title><link rel="stylesheet" href="css/app.css"></head>
+<body><main class="main recipe-main recipe-workspace">
+  <header class="topbar"><div><a href="index.html" class="back-button">← Dashboard</a><p class="eyebrow">RECIPES</p><h1>Recipe Library</h1><p>Build and manage Prep Items, Menu Products and Combos.</p></div><div class="recipe-actions"><a href="menu.html" class="secondary-button">Menu</a><a href="production.html" class="secondary-button">Production</a><a href="recipe-builder.html" id="newRecipe" class="primary-button">+ New Recipe</a></div></header>
+  <section id="recipeSummary" class="inventory-metrics" aria-label="Recipe summary"></section>
+  <section class="recipe-panel recipe-library-controls"><div class="recipe-search-row"><label>Search recipes<input id="recipeSearch" type="search" placeholder="Search by name, type or linked item..."></label><label>Status<select id="recipeStatus"><option value="ALL">All statuses</option><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option><option value="ATTENTION">Needs Attention</option></select></label></div><div id="recipeTypeFilter" class="segmented-controls" aria-label="Recipe type"><button type="button" data-recipe-filter="ALL" class="active" aria-pressed="true">All</button><button type="button" data-recipe-filter="PREP_ITEM" aria-pressed="false">Prep Items</button><button type="button" data-recipe-filter="MENU_PRODUCT" aria-pressed="false">Menu Products</button><button type="button" data-recipe-filter="COMBO" aria-pressed="false">Combos</button></div></section>
+  <p id="recipeResultCount" class="recipe-muted" role="status"></p><section id="recipeList" class="recipe-library-grid" aria-label="Recipes"></section>
+</main>
+<script src="js/inventory-service.js"></script><script src="js/recipe-service.js"></script><script src="js/menu-service.js"></script><script src="js/components/recipe-ui.js"></script><script src="js/recipes.js"></script></body></html>

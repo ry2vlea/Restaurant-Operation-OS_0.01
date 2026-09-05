@@ -1,76 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Recipe Builder | Restaurant OS</title>
-    <link rel="stylesheet" href="css/app.css">
-  </head>
-  <body>
-    <main class="main recipe-main">
-      <header class="topbar">
-        <div>
-          <button class="back-button" onclick="location.href='recipes.html'">← Recipes</button>
-          <p class="eyebrow">RECIPE BUILDER</p>
-          <h1 id="builderTitle">New Recipe</h1>
-          <p>Connect real Inventory Items and see cost update live.</p>
-        </div>
-      </header>
-      <form id="recipeBuilder" class="recipe-builder">
-        <section class="recipe-panel">
-          <h2>Recipe Information</h2>
-          <div class="form-grid">
-            <label>
-              Name
-              <input name="name" required>
-            </label>
-            <label>
-              Type
-              <select name="recipeType">
-                <option value="MENU_PRODUCT">Menu Product</option>
-                <option value="PREP_ITEM">Prep Item</option>
-                <option value="COMBO">Combo</option>
-              </select>
-            </label>
-            <label>
-              Yield Quantity
-              <input name="yieldQuantity" type="number" min="0.01" step="0.01" value="1" required>
-            </label>
-            <label>
-              Yield Unit
-              <select name="yieldUnitId" id="yieldUnit"></select>
-            </label>
-            <label>
-              Produced Inventory Item
-              <select name="producedInventoryItemId" id="producedItem">
-                <option value="">None</option>
-              </select>
-            </label>
-          </div>
-        </section>
-        <section class="recipe-panel">
-          <div class="section-header">
-            <div>
-              <h2>Ingredients</h2>
-              <p>Components resolve through Inventory, Prep Items and Menu Products.</p>
-            </div>
-            <button type="button" class="secondary-button" id="addIngredient">+ Add Component</button>
-          </div>
-          <div id="ingredients"></div>
-          <div class="recipe-total">
-            <span>Recipe Cost</span>
-            <strong id="recipeCost">$0.00</strong>
-          </div>
-        </section>
-        <div class="modal-actions">
-          <button type="button" class="secondary-button" onclick="location.href='recipes.html'">Cancel</button>
-          <button class="primary-button" type="submit">Save Recipe</button>
-        </div>
-      </form>
-    </main>
-    <script src="js/inventory-service.js"></script>
-    <script src="js/recipe-service.js"></script>
-    <script src="js/components/ui-feedback.js"></script>
-    <script src="js/recipe-builder.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Recipe Builder | Restaurant OS</title><link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<main class="main recipe-main recipe-workspace">
+  <header class="topbar">
+    <div><a class="back-button" href="recipes.html">← Recipes</a><p class="eyebrow" id="builderMode">NEW RECIPE</p><h1 id="builderTitle">Recipe Builder</h1><p id="builderMeta">Build a recipe from your inventory and prepared components.</p></div>
+    <span id="builderTypeBadge"></span>
+  </header>
+  <div id="builderError" role="alert" hidden></div>
+  <section class="recipe-panel" id="typeSection" aria-labelledby="typeHeading">
+    <div class="section-header"><h2 id="typeHeading">What are you creating?</h2></div>
+    <div class="recipe-type-grid" id="typeSelector">
+      <button type="button" class="recipe-type-choice" data-type="PREP_ITEM" aria-pressed="false"><span class="eyebrow">01 · PREP ITEM</span><strong>Prepare a component</strong><span>Something prepared internally and used by other recipes.</span><small>House Sauce · Breading Mix · Sundae Mix</small></button>
+      <button type="button" class="recipe-type-choice" data-type="MENU_PRODUCT" aria-pressed="false"><span class="eyebrow">02 · MENU PRODUCT</span><strong>Build a product</strong><span>A food or beverage sold individually or used inside a combo.</span><small>Chicken Sandwich · Regular Fries · 20 oz Pepsi</small></button>
+      <button type="button" class="recipe-type-choice" data-type="COMBO" aria-pressed="false"><span class="eyebrow">03 · COMBO</span><strong>Bundle products</strong><span>Multiple menu products with optional packaging.</span><small>Chicken Sandwich Combo · Family Meal · Kids Meal</small></button>
+    </div>
+  </section>
+  <form id="recipeBuilder" class="recipe-editor-layout" hidden novalidate>
+    <div class="recipe-editor-main">
+      <section class="recipe-panel"><h2>Recipe Information</h2><div class="form-grid">
+        <label class="full-width">Recipe Name<input name="name" id="recipeName" required maxlength="160" autocomplete="off" placeholder="e.g. House Sauce"></label>
+        <label>Recipe Type<input id="recipeType" readonly></label>
+        <label>Status<select name="active"><option value="true">Active</option><option value="false">Inactive</option></select></label>
+      </div></section>
+      <section class="recipe-panel" id="yieldSection"><h2>Yield</h2><div class="form-grid">
+        <label>Yield Quantity<input name="yieldQuantity" type="number" min="0.000001" step="any" required></label>
+        <label>Yield Unit<select name="yieldUnitId" id="yieldUnit"></select></label>
+      </div><p class="recipe-muted" id="fixedYield" hidden>Each recipe makes 1 EA.</p></section>
+      <section class="recipe-panel" id="productionSection" hidden><h2>Production</h2>
+        <label class="recipe-checkbox"><input id="trackProduction" type="checkbox">Track this Prep Item as produced inventory</label>
+        <p class="recipe-muted">Use this when the Prep Item is physically produced, stored and counted as inventory.</p>
+        <label id="producedItemLabel" hidden>Produced Inventory Item<select name="producedInventoryItemId" id="producedItem"></select></label>
+      </section>
+      <section class="recipe-panel"><div class="section-header"><div><h2>Components</h2><p class="recipe-muted" id="componentHint"></p></div><button type="button" class="secondary-button" id="addIngredient">+ Add Component</button></div><div id="ingredients"></div></section>
+      <section class="recipe-panel"><h2>Preparation Notes</h2><label>Instructions<textarea name="instructions" rows="4" placeholder="Preparation steps, portioning and handling..."></textarea></label><label>Notes<textarea name="notes" rows="2" placeholder="Additional recipe notes..."></textarea></label></section>
+    </div>
+    <aside class="recipe-editor-summary">
+      <section class="recipe-panel"><p class="eyebrow">LIVE COSTING</p><h2>Cost Summary</h2><div id="costSummary" aria-live="polite"></div></section>
+      <section class="recipe-panel"><h2>Recipe Health</h2><div id="recipeHealth" aria-live="polite"></div></section>
+      <section class="recipe-panel" id="dependenciesSection" hidden><h2>Used By</h2><div id="recipeDependencies"></div></section>
+      <section class="recipe-panel recipe-save-panel"><p class="recipe-muted" id="dirtyState">No unsaved changes</p><div id="saveError" role="alert"></div><button type="submit" class="primary-button" id="saveRecipe">Create Recipe</button><a class="secondary-button" href="recipes.html">Cancel</a></section>
+    </aside>
+  </form>
+</main>
+<dialog id="componentPicker" class="recipe-picker" aria-labelledby="pickerTitle">
+  <div class="modal-header"><div><p class="eyebrow">RECIPE COMPONENTS</p><h2 id="pickerTitle">Add Component</h2></div><button type="button" class="icon-button" id="closePicker" aria-label="Close component picker">×</button></div>
+  <label>Search components<input id="componentSearch" type="search" placeholder="Search by name, SKU or category..." autocomplete="off"></label>
+  <div id="pickerTabs" class="segmented-controls" aria-label="Component types"></div>
+  <p id="pickerMessage" role="status"></p><div id="pickerResults" class="recipe-picker-results"></div>
+</dialog>
+<script src="js/inventory-service.js"></script><script src="js/recipe-service.js"></script><script src="js/menu-service.js"></script>
+<script src="js/components/ui-feedback.js"></script><script src="js/components/recipe-ui.js"></script><script src="js/recipe-builder.js"></script>
+</body>
 </html>

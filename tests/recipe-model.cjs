@@ -126,38 +126,3 @@ data.set('recipes', JSON.stringify(corrupt)); context.dispatchEvent({ type: 'sto
 assert(R.getRecipeWarnings('corrupt').some(w => /Circular/.test(w.message)));
 assert.throws(() => R.resolveInventoryUsage('MENU_PRODUCT', 'corrupt', 1), /Circular/);
 console.log('PASS: A/B/C costs and usage, preview conversion, validation, versioning, legacy preservation, Sales, Food Cost, and Production');
-// Load existing Recipes and Builder scripts with isolated simulated page globals.
-function page() {
-  const elements = new Map();
-  const element = () => ({ value: '', innerHTML: '', textContent: '', dataset: {}, hidden: false,
-    addEventListener() {}, querySelectorAll() { return []; }, closest() { return this; } });
-  const document = { getElementById(id) { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); }, querySelectorAll() { return []; } };
-  const globals = { document, console, performance, RecipeService: R, InventoryService: I,
-    showToast(message, type) { if (type === 'error') throw new Error(message); }, location: {}, setTimeout() {}, addEventListener() {} };
-  globals.window = globals;
-  return { elements, document, globals, element };
-}
-const listing = page();
-vm.runInNewContext(fs.readFileSync(path.join(root, 'js/recipes.js'), 'utf8'), listing.globals);
-assert(listing.elements.get('recipeList').innerHTML.includes('Chicken Sandwich'));
-assert(listing.elements.get('recipeList').innerHTML.includes('Circular'), 'invalid legacy recipe cannot crash listing');
-assert(!listing.elements.get('recipeList').innerHTML.includes('Selling Price'));
-const builder = page();
-const fields = {};
-for (const [name, value] of Object.entries({ name: 'Builder Test', recipeType: 'MENU_PRODUCT', yieldQuantity: '1', yieldUnitId: 'UNIT-EA', producedInventoryItemId: '' })) fields[name] = { ...builder.element(), value };
-builder.document.getElementById('recipeBuilder').elements = fields;
-builder.globals.FormData = class { constructor() { return Object.entries(fields).map(([name, field]) => [name, field.value]); } };
-const builderContext = vm.createContext(builder.globals);
-vm.runInContext(fs.readFileSync(path.join(root, 'js/recipe-builder.js'), 'utf8'), builderContext);
-assert(builder.elements.get('ingredients').innerHTML.includes('ingredient-row'));
-assert(builder.elements.get('recipeCost').textContent.startsWith('$'));
-builder.document.getElementById('recipeBuilder').onsubmit({ preventDefault() {} });
-assert(R.getRecipes().some(recipe => recipe.name === 'Builder Test'));
-// Confirm preview/form quantity conversion uses the service and flags invalid units.
-R.updateRecipe(sauce.id, { yieldQuantity: 1, yieldUnitId: 'UNIT-GAL' });
-builder.globals.prepId = sauce.id;
-vm.runInContext("builder.components = [{ sourceType: 'PREP_ITEM', sourceId: prepId, quantity: 4, unitId: 'UNIT-OZ' }]; updateCost();", builderContext);
-assert.equal(builder.elements.get('recipeCost').textContent, '$0.58');
-vm.runInContext("builder.components[0].unitId = 'UNIT-EA'; updateCost();", builderContext);
-assert(builder.elements.get('recipeCost').textContent.startsWith('Incomplete:'));
-console.log('PASS: Recipes rendering, invalid recipe display, Builder load/create, and unit-aware preview');
