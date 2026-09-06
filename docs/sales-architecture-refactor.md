@@ -21,8 +21,8 @@ SalesService owns menuSales, daily summaries, persistence, metrics, and menu mix
 - `js/sales-service.js`
 - `js/sales.js`
 - `js/sample-data.js`
-- `js/theoretical-usage-service.js`
-- `js/variance-service.js`
+- `js/inventory_js/theoretical-usage-service.js`
+- `js/inventory_js/variance-service.js`
 - `menu-analysis.html`
 - `purchasing.html`
 - `settings.html`

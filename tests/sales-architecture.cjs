@@ -14,10 +14,10 @@ const context = vm.createContext({ console, performance, Date, Map, Set, structu
 context.window = context;
 const load = file => vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
 const run = code => vm.runInContext(code, context);
-for (const file of fs.readdirSync(path.join(root, 'js')).filter(f => f.endsWith('.js'))) {
+for (const file of fs.readdirSync(path.join(root, 'js'), { recursive: true }).filter(f => f.endsWith('.js'))) {
   new vm.Script(fs.readFileSync(path.join(root, 'js', file), 'utf8'), { filename: file });
 }
-for (const name of ['inventory', 'recipe', 'menu', 'sales', 'theoretical-usage', 'business-performance']) load(`js/${name}-service.js`);
+for (const name of ['inventory', 'recipe', 'menu', 'sales', 'theoretical-usage', 'business-performance']) load(`js/${['inventory', 'theoretical-usage', 'production'].includes(name) ? 'inventory_js/' : ''}${name}-service.js`);
 load('js/sample-data.js');
 run('SampleDataService.load()');
 const S = context.SalesService, T = context.TheoreticalUsageService;
@@ -89,7 +89,12 @@ assert.deepEqual(Object.keys(T).sort(), ['calculateForDate', 'calculateTheoretic
 for (const html of fs.readdirSync(root).filter(f => f.endsWith('.html'))) {
   const text = fs.readFileSync(path.join(root, html), 'utf8');
   const scripts = [...text.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]);
-  for (const dependency of ['js/theoretical-usage-service.js', 'js/analytics-context.js']) {
+  for (const script of scripts) assert(fs.existsSync(path.join(root, script)), `${html}: missing ${script}`);
+  const inventoryService = scripts.indexOf('js/inventory_js/inventory-service.js');
+  for (const script of scripts.filter(src => src.startsWith('js/inventory_js/') && !src.endsWith('/inventory-service.js'))) {
+    assert(inventoryService >= 0 && inventoryService < scripts.indexOf(script), `${html}: inventory service must load before ${script}`);
+  }
+  for (const dependency of ['js/inventory_js/theoretical-usage-service.js', 'js/analytics-context.js']) {
     if (scripts.includes(dependency)) assert(scripts.indexOf('js/sales-service.js') >= 0 && scripts.indexOf('js/sales-service.js') < scripts.indexOf(dependency), html);
   }
 }

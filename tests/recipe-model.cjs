@@ -12,7 +12,7 @@ const context = vm.createContext({ console, performance, structuredClone,
 });
 context.window = context;
 const load = file => vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file });
-for (const name of ['inventory', 'recipe', 'menu', 'sales', 'theoretical-usage', 'production', 'food-cost']) load(`js/${name}-service.js`);
+for (const name of ['inventory', 'recipe', 'menu', 'sales', 'theoretical-usage', 'production', 'food-cost']) load(`js/${['inventory', 'theoretical-usage', 'production'].includes(name) ? 'inventory_js/' : ''}${name}-service.js`);
 load('js/analytics-context.js');
 const R = context.RecipeService, I = context.InventoryService, M = context.MenuService, S = context.SalesService;
 const near = (actual, expected) => assert(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
