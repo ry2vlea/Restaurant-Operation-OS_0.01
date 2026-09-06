@@ -303,21 +303,298 @@ function refreshFoodCost(startDate, endDate) {
   foodCostSections.innerHTML = `
 
     <!-- COST OVERVIEW -->
-    <section class="recipe-panel management-card--wide">
+<section class="recipe-panel management-card--wide">
 
-      <div class="management-card-header">
-        <div>
-          <h3 class="management-card-title">
-            Cost Overview
-          </h3>
+  <div class="management-card-header">
+    <div>
+      <h3 class="management-card-title">
+        Cost Overview
+      </h3>
 
-          <p class="management-card-subtitle">
-            Actual performance compared with theoretical usage and target.
-          </p>
-        </div>
+      <p class="management-card-subtitle">
+        How inventory movement translates into actual food cost.
+      </p>
+    </div>
 
-        ${overviewBadge}
+    ${overviewBadge}
+  </div>
+
+
+  <div class="food-cost-overview-grid">
+
+    <!-- ACTUAL FOOD COST -->
+    <div class="food-cost-overview-primary">
+
+      <div class="food-cost-display">
+
+        <span class="food-cost-display__label">
+          Actual Food Cost
+        </span>
+
+        <span class="food-cost-display__value">
+          ${percentValue(data.actualFoodCostPercent)}
+        </span>
+
+        <span class="food-cost-overview-message">
+          ${overviewMessage}
+        </span>
+
       </div>
+
+
+      ${
+        data.actualCoverageStartDate &&
+        data.actualCoverageEndDate
+          ? `
+            <div class="food-cost-coverage">
+              Inventory period:
+              <strong>
+                ${data.actualCoverageStartDate}
+                →
+                ${data.actualCoverageEndDate}
+              </strong>
+            </div>
+          `
+          : `
+            <div class="food-cost-coverage food-cost-coverage--warning">
+              Actual food cost requires two completed inventory counts.
+            </div>
+          `
+      }
+
+    </div>
+
+
+    <!-- PERFORMANCE SUMMARY -->
+    <div class="summary-list">
+
+      <div class="summary-row">
+        <span class="summary-row__label">
+          Period Net Sales
+        </span>
+
+        <span class="summary-row__value">
+          ${moneyValue(data.netSales)}
+        </span>
+      </div>
+
+      <div class="summary-row">
+        <span class="summary-row__label">
+          Theoretical Food Cost
+        </span>
+
+        <span class="summary-row__value">
+          ${percentValue(data.theoreticalFoodCostPercent)}
+        </span>
+      </div>
+
+      <div class="summary-row">
+        <span class="summary-row__label">
+          Actual Food Cost
+        </span>
+
+        <span class="summary-row__value">
+          ${percentValue(data.actualFoodCostPercent)}
+        </span>
+      </div>
+
+      <div class="summary-row">
+        <span class="summary-row__label">
+          Variance vs Theoretical
+        </span>
+
+        <span class="summary-row__value ${
+          getVarianceStatus(data.foodCostVariancePoints)
+        }">
+          ${pointsValue(data.foodCostVariancePoints)}
+        </span>
+      </div>
+
+      <div class="summary-row">
+        <span class="summary-row__label">
+          Target
+        </span>
+
+        <span class="summary-row__value">
+          ${percentValue(data.targetFoodCostPercent)}
+        </span>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- COGS BRIDGE -->
+  <div class="cogs-bridge">
+
+    <div class="cogs-bridge__header">
+      <div>
+        <span class="section-eyebrow">
+          INVENTORY FLOW
+        </span>
+
+        <h4>
+          Actual COGS Calculation
+        </h4>
+      </div>
+
+      <span class="cogs-bridge__formula">
+        Opening + Purchases − Closing
+      </span>
+    </div>
+
+
+    ${
+      data.actualCost != null
+        ? `
+          <div class="cogs-bridge__flow">
+
+            <div class="cogs-step">
+              <span class="cogs-step__label">
+                Opening Inventory
+              </span>
+
+              <strong class="cogs-step__value">
+                ${moneyValue(data.openingInventory)}
+              </strong>
+
+              <span class="cogs-step__note">
+                Beginning inventory value
+              </span>
+            </div>
+
+
+            <div class="cogs-operator">
+              +
+            </div>
+
+
+            <div class="cogs-step">
+              <span class="cogs-step__label">
+                Net Purchases
+              </span>
+
+              <strong class="cogs-step__value">
+                ${moneyValue(data.netPurchases)}
+              </strong>
+
+              <span class="cogs-step__note">
+                Receipts less returns
+              </span>
+            </div>
+
+
+            <div class="cogs-operator">
+              −
+            </div>
+
+
+            <div class="cogs-step">
+              <span class="cogs-step__label">
+                Closing Inventory
+              </span>
+
+              <strong class="cogs-step__value">
+                ${moneyValue(data.closingInventory)}
+              </strong>
+
+              <span class="cogs-step__note">
+                Ending inventory value
+              </span>
+            </div>
+
+
+            <div class="cogs-operator cogs-operator--equals">
+              =
+            </div>
+
+
+            <div class="cogs-step cogs-step--result">
+
+              <span class="cogs-step__label">
+                Actual COGS
+              </span>
+
+              <strong class="cogs-step__value">
+                ${moneyValue(data.actualCost)}
+              </strong>
+
+              <span class="cogs-step__note">
+                Cost of goods consumed
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="cogs-details">
+
+            <div class="cogs-detail">
+              <span>
+                Purchases Received
+              </span>
+
+              <strong>
+                ${moneyValue(data.purchases)}
+              </strong>
+            </div>
+
+
+            <div class="cogs-detail">
+              <span>
+                Purchase Returns
+              </span>
+
+              <strong>
+                ${moneyValue(data.purchaseReturns)}
+              </strong>
+            </div>
+
+
+            <div class="cogs-detail">
+              <span>
+                Sales During Count Period
+              </span>
+
+              <strong>
+                ${moneyValue(data.actualPeriodNetSales)}
+              </strong>
+            </div>
+
+
+            <div class="cogs-detail">
+              <span>
+                Theoretical Cost During Count Period
+              </span>
+
+              <strong>
+                ${moneyValue(data.actualPeriodTheoreticalCost)}
+              </strong>
+            </div>
+
+          </div>
+        `
+        : `
+          <div class="empty-state">
+
+            <strong>
+              Actual COGS unavailable
+            </strong>
+
+            <p>
+              Complete at least two physical inventory counts to calculate
+              opening inventory, purchases, closing inventory and actual food cost.
+            </p>
+
+          </div>
+        `
+    }
+
+  </div>
+
+</section>
 
 
       <div class="food-cost-overview-grid">
