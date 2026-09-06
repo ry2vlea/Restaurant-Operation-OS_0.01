@@ -46,7 +46,7 @@
     if (item?.categoryId && !categoryOptions[item.categoryId]) categoryOptions[item.categoryId] = categoryLabel(item.categoryId);
     form.elements.categoryId.innerHTML = Object.entries(categoryOptions).map(([value, label]) => `<option value="${UI.escape(value)}">${UI.escape(label)}</option>`).join('');
     form.elements.recipeId.innerHTML = '<option value="">Select a recipe</option>' + recipes.map(recipe => `<option value="${UI.escape(recipe.id)}">${UI.escape(recipe.name)}${!recipe.active ? ' (inactive)' : ''}</option>`).join('');
-    if (item) Object.keys(formValues()).forEach(key => { if (form.elements[key]) form.elements[key].value = item[key] ?? ''; });
+    if (item) form.querySelectorAll('[name]').forEach(field => { field.value = field.name === 'active' ? String(item.active !== false) : item[field.name] ?? ''; });
     else { form.elements.categoryId.value = 'MCAT-OTHER'; form.elements.limitedThreshold.value = '10'; }
     $('menuEditorTitle').textContent = id ? 'Edit Menu Item' : 'Add Menu Item';
     $('menuSave').textContent = id ? 'Save Changes' : 'Create Menu Item';

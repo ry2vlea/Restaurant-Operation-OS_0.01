@@ -7,71 +7,12 @@
     <link rel="stylesheet" href="css/04_dense_ops.css">
   </head>
   <body>
-    <aside class="sidebar">
-      <div class="brand">
-        <h2>Restaurant OS</h2>
-        <p>Harbor Grill</p>
-      </div>
-      <nav>
-        <p class="nav-section">COMMAND CENTER</p>
-        <button class="nav-item active">Dashboard</button>
-        <button class="nav-item">Today</button>
-        <p class="nav-section">OPERATIONS</p>
-        <button class="nav-item">Shifts</button>
-        <button class="nav-item" onclick="window.location.href='tasks.html'">Tasks</button>
-        <button class="nav-item" onclick="window.location.href='issues.html'">Issues</button>
-        <button class="nav-item" onclick="window.location.href='history.html'">History</button>
-        <button class="nav-item">Incidents</button>
-        <p class="nav-section">INVENTORY</p>
-        <button class="nav-item" onclick="window.location.href='inventory.html'">Inventory</button>
-        <button class="nav-item" onclick="window.location.href='receiving.html'">Receiving</button>
-        <button class="nav-item" onclick="window.location.href='waste.html'">Waste</button>
-        <button class="nav-item" onclick="window.location.href='purchasing.html'">Purchasing</button>
-        <button class="nav-item" onclick="window.location.href='inventory-variance.html'">Variance</button>
-        <button class="nav-item" onclick="window.location.href='recipes.html'">Recipes</button>
-        <button class="nav-item" onclick="window.location.href='menu.html'">Menu</button>
-        <button class="nav-item" onclick="window.location.href='production.html'">Production</button>
-<p class="nav-section">
-  PERFORMANCE
-</p>
-
-<button
-  class="nav-item"
-  onclick="window.location.href='sales.html'"
->
-  Sales
-</button>
-
-<button class="nav-item">
-  Daily Report
-</button>
-
-<button
-  class="nav-item"
-  onclick="window.location.href='business-performance.html'"
->
-  Business Performance
-</button>
-
-<button
-  class="nav-item"
-  onclick="window.location.href='food-cost.html'"
->
-  Food Cost
-</button>
-        <p class="nav-section">RESTAURANT</p>
-        <button class="nav-item" onclick="window.location.href='equipment.html'">Equipment</button>
-        <button class="nav-item" onclick="window.location.href='team.html'">Team</button>
-        <button class="nav-item" onclick="window.location.href='sops.html'">SOP Library</button>
-        <p class="nav-section">SYSTEM</p>
-        <button class="nav-item">Activity Log</button>
-        <button class="nav-item" onclick="window.location.href='settings.html'">Settings</button>
-      </nav>
-    </aside>
-    <main class="main">
+    <aside class="sidebar" aria-label="Main navigation"></aside>
+<script src="js/components/app-shell.js"></script>
+    <main class="main dashboard-main">
       <template id="appHeaderActions">
         <div class="manager-area">
-          <label>Manager on Duty</label>
+          <label for="managerSelect">Manager on Duty</label>
           <select id="managerSelect">
             <option>Jordan Lee</option>
             <option>Alex Rivera</option>
@@ -80,104 +21,18 @@
         </div>
       </template>
       <div id="appHeader"></div>
-      <section class="welcome">
-        <div>
-          <p class="eyebrow">CURRENT OPERATIONS</p>
-          <h2 id="managerGreeting">Good afternoon, Jordan.</h2>
-          <p>Here's what is happening in the restaurant right now.</p>
-        </div>
-        <div class="welcome-actions">
-          <button class="primary-button" id="startShiftButton">Start Opening Shift</button>
-          <button class="secondary-button" id="sampleDataButton">Load Sample Data</button>
-        </div>
-      </section>
-      <section class="dashboard-attention" id="dashboardAttention">
-        <div class="section-header">
-          <div>
-            <p class="eyebrow">LIVE OPERATIONS</p>
-            <h2>Needs Attention</h2>
-          </div>
-          <button class="secondary-button" id="attentionViewAll">View All</button>
-        </div>
-        <div id="attentionList" class="attention-list"></div>
-      </section>
-      <section>
-        <div class="section-header">
-          <h2>Today's Shifts</h2>
-        </div>
-        <div class="shift-grid">
-          <article class="card shift-dashboard-card" id="openingShiftCard" data-total="10">
-            <div class="card-top">
-              <span>OPENING</span>
-              <span class="status neutral">Not Started</span>
-            </div>
-            <h3>Opening Shift</h3>
-            <p>Manager: Not assigned</p>
-            <div class="progress">
-              <div class="progress-bar" style="width:0%"></div>
-            </div>
-            <small>0% complete</small>
-          </article>
-          <article class="card shift-dashboard-card" id="midShiftCard" data-total="26">
-            <div class="card-top">
-              <span>MID-SHIFT</span>
-              <span class="status neutral">Not Started</span>
-            </div>
-            <h3>Mid-Shift</h3>
-            <p>Manager: Not assigned</p>
-            <div class="progress">
-              <div class="progress-bar" style="width:0%"></div>
-            </div>
-            <small>0% complete</small>
-          </article>
-          <article class="card shift-dashboard-card" id="closingShiftCard" data-total="28">
-            <div class="card-top">
-              <span>CLOSING</span>
-              <span class="status neutral">Not Started</span>
-            </div>
-            <h3>Closing Shift</h3>
-            <p>Manager: Not assigned</p>
-            <div class="progress">
-              <div class="progress-bar" style="width:0%"></div>
-            </div>
-            <small>0% complete</small>
-          </article>
-        </div>
-      </section>
-      <section>
-        <div class="section-header">
-          <h2>Operational Overview</h2>
-        </div>
-        <div class="metrics-grid">
-          <article class="metric-card metric-card-link" id="openIssuesCard" tabindex="0" role="link">
-            <p>OPEN ISSUES</p>
-            <h2 id="issueCount">0</h2>
-            <span class="good">No critical issues</span>
-          </article>
-          <article class="metric-card metric-card-link" id="pendingTasksCard" tabindex="0" role="link">
-            <p>PENDING TASKS</p>
-            <h2 id="taskCount">0</h2>
-            <span id="taskNote">Nothing overdue</span>
-          </article>
-          <article class="metric-card" id="inventoryHealthCard">
-            <p>INVENTORY ALERTS</p>
-            <h2>0</h2>
-            <span class="good" id="inventoryHealthNote">No inventory items</span>
-          </article>
-          <article class="metric-card">
-            <p>EQUIPMENT</p>
-            <h2>0</h2>
-            <span class="good">All operational</span>
-          </article>
-        </div>
-      </section>
-      <section class="priority">
-        <div>
-          <p class="eyebrow">TODAY'S PRIORITY</p>
-          <h3 id="priorityText">Complete opening readiness before service.</h3>
-        </div>
-        <button class="secondary-button">Edit Priority</button>
-      </section>
+      <section aria-label="Reporting period"><div class="section-header"><h2>Performance</h2><span id="dashboardRange" class="recipe-muted"></span></div><div id="dashboardKPIs" class="dashboard-kpis"></div></section>
+      <div class="section-header"><h2>Live Operations</h2><span id="liveDate" class="recipe-muted"></span></div>
+      <section class="dashboard-attention"><div class="section-header"><h2>Needs Attention <span id="attentionCount"></span></h2><button class="secondary-button" id="attentionViewAll">Show All</button></div><div id="attentionList" class="attention-list"></div></section>
+      <section><div class="section-header"><h2>Today's Shifts</h2><a href="history.html">Shift history →</a></div><div class="shift-grid">
+        <article class="card shift-dashboard-card" id="openingShiftCard" data-total="10"></article>
+        <article class="card shift-dashboard-card" id="midShiftCard" data-total="26"></article>
+        <article class="card shift-dashboard-card" id="closingShiftCard" data-total="28"></article>
+      </div></section>
+      <div class="dashboard-panels"><section class="recipe-panel"><div class="section-header"><h2>Inventory Watch</h2><a href="inventory.html">Open inventory →</a></div><div id="inventoryWatch"></div></section><section class="recipe-panel"><div class="section-header"><h2>Team &amp; Tasks</h2><a href="tasks.html">Open tasks →</a></div><div id="teamWatch"></div></section></div>
+      <section class="recipe-panel"><div class="section-header"><h2>Quick Actions</h2><span id="reportStatus" class="recipe-muted"></span></div><div class="dashboard-actions">
+        <a class="secondary-button" href="sales.html">Record Sales</a><a class="secondary-button" href="receiving.html">Receive Stock</a><a class="secondary-button" href="waste.html">Log Waste</a><a class="secondary-button" href="production.html">Record Production</a><a class="secondary-button" href="inventory-count.html">Count Inventory</a><a class="secondary-button" href="daily-report.html">Daily Report</a>
+      </div></section><div class="dashboard-footer"><button class="secondary-button" id="sampleDataButton">Load Sample Data</button></div>
     </main>
     <script src="js/issues.js"></script>
     <script src="js/tasks.js"></script>
@@ -200,7 +55,6 @@
     <script src="js/sop-service.js"></script>
     <script src="js/daily-report-service.js"></script>
     <script src="js/components/ui-feedback.js"></script>
-    <script src="js/components/app-shell.js"></script>
     <script src="js/components/app-header.js"></script>
     <script src="js/sample-data.js"></script>
     <script>
@@ -211,6 +65,7 @@
         showDateSelector: true
       });
     </script>
+    <script src="js/components/recipe-ui.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

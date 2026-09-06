@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Menu Library | Restaurant OS</title><link rel="stylesheet" href="css/04_dense_ops.css"></head>
-<body><main class="main recipe-main recipe-workspace">
+<body>
+<aside class="sidebar" aria-label="Main navigation"></aside>
+<script src="js/components/app-shell.js"></script><main class="main recipe-main recipe-workspace">
 <header class="topbar"><div><a class="back-button" href="index.html">← Dashboard</a><p class="eyebrow">MENU & RECIPES</p><h1>Menu Library</h1><p>Manage what you sell, its price and availability.</p></div><div class="recipe-actions"><a class="secondary-button" href="recipes.html">Recipes</a><a class="secondary-button" href="menu-analysis.html">Cost Analysis</a><button class="primary-button" id="newMenuItem">+ Add Menu Item</button></div></header>
 <section id="menuMetrics" class="inventory-metrics" aria-label="Menu summary"></section>
 <section class="recipe-panel recipe-library-controls"><div class="menu-search-row"><label>Search menu<input id="menuSearch" type="search" placeholder="Name, SKU or linked recipe..."></label><label>Category<select id="menuCategory"><option value="ALL">All categories</option></select></label><label>Status<select id="menuStatus"><option value="ALL">All statuses</option><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option><option value="AVAILABLE">Available</option><option value="ATTENTION">Needs Attention</option></select></label></div><div class="segmented-controls" id="menuTypeFilter" aria-label="Menu type"><button data-type="ALL" class="active" aria-pressed="true">All</button><button data-type="MENU_PRODUCT" aria-pressed="false">Menu Products</button><button data-type="COMBO" aria-pressed="false">Combos</button></div></section>
