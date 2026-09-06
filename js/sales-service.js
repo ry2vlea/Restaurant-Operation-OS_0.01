@@ -96,7 +96,7 @@
     const item =
       MenuService.getMenuItemById(menuItemId);
 
-    if (!item) {
+    if (!item || item.deletedAt || item.active === false) {
       throw new Error(
         "Menu item not found."
       );
@@ -510,6 +510,18 @@
     return calculateMetrics(date, date, sales, transactions);
   }
 
+  function getRecordingStatus(startDate, endDate = startDate) {
+    const inRange = (record) => (!startDate || record.date >= startDate) && (!endDate || record.date <= endDate);
+    const sales = getSales(startDate, endDate);
+    const summaries = readSummaries().filter(inRange);
+    const legacy = getLegacySummaries().filter(inRange);
+    return {
+      salesRecorded: sales.length > 0 || summaries.length > 0 || legacy.some(record => record.netSales != null),
+      transactionsRecorded: summaries.length > 0 || legacy.some(record => record.transactions != null),
+      costsRecorded: sales.length > 0 && sales.every(sale => sale.theoreticalUnitCostAtSale != null)
+    };
+  }
+
   function getMenuMix(date, endDate = date) {
     const groups = new Map();
     getSales(date, endDate).forEach((sale) => {
@@ -568,6 +580,7 @@
     previewDailySales,
     getSaleValues,
     calculateMetrics,
+    getRecordingStatus,
     getMenuMix,
 
     deleteSale

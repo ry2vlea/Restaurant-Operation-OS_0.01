@@ -1,33 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Menu | Restaurant OS</title>
-    <link rel="stylesheet" href="css/04_dense_ops.css">
-  </head>
-  <body>
-    <main class="main recipe-main">
-      <header class="topbar">
-        <div>
-          <button class="back-button" onclick="location.href='index.html'">← Dashboard</button>
-          <p class="eyebrow">MENU & RECIPES</p>
-          <h1>Menu</h1>
-          <p>Manage menu items, pricing, recipes and operational availability.</p>
-        </div>
-        <div class="inventory-actions">
-          <button class="secondary-button" onclick="location.href='recipes.html'">Recipes</button>
-          <button class="secondary-button" onclick="location.href='menu-analysis.html'">Cost Analysis</button>
-          <button class="primary-button" id="newMenuItem">+ Add Menu Item</button>
-        </div>
-      </header>
-      <section id="menuMetrics" class="inventory-metrics"></section>
-      <section id="menuList" class="menu-list"></section>
-    </main>
-    <script src="js/inventory-service.js"></script>
-    <script src="js/recipe-service.js"></script>
-    <script src="js/menu-service.js"></script>
-    <script src="js/components/ui-feedback.js"></script>
-    <script src="js/menu.js"></script>
-  </body>
-</html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Menu Library | Restaurant OS</title><link rel="stylesheet" href="css/04_dense_ops.css"></head>
+<body><main class="main recipe-main recipe-workspace">
+<header class="topbar"><div><a class="back-button" href="index.html">← Dashboard</a><p class="eyebrow">MENU & RECIPES</p><h1>Menu Library</h1><p>Manage what you sell, its price and availability.</p></div><div class="recipe-actions"><a class="secondary-button" href="recipes.html">Recipes</a><a class="secondary-button" href="menu-analysis.html">Cost Analysis</a><button class="primary-button" id="newMenuItem">+ Add Menu Item</button></div></header>
+<section id="menuMetrics" class="inventory-metrics" aria-label="Menu summary"></section>
+<section class="recipe-panel recipe-library-controls"><div class="menu-search-row"><label>Search menu<input id="menuSearch" type="search" placeholder="Name, SKU or linked recipe..."></label><label>Category<select id="menuCategory"><option value="ALL">All categories</option></select></label><label>Status<select id="menuStatus"><option value="ALL">All statuses</option><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option><option value="AVAILABLE">Available</option><option value="ATTENTION">Needs Attention</option></select></label></div><div class="segmented-controls" id="menuTypeFilter" aria-label="Menu type"><button data-type="ALL" class="active" aria-pressed="true">All</button><button data-type="MENU_PRODUCT" aria-pressed="false">Menu Products</button><button data-type="COMBO" aria-pressed="false">Combos</button></div></section>
+<p id="menuResultCount" class="recipe-muted" role="status"></p><section id="menuList" class="recipe-library-grid" aria-label="Menu items"></section>
+</main>
+<dialog id="menuEditor" class="recipe-picker menu-editor" aria-labelledby="menuEditorTitle"><div class="modal-header"><div><p class="eyebrow">MENU MANAGEMENT</p><h2 id="menuEditorTitle">Add Menu Item</h2></div><button type="button" data-close class="icon-button" aria-label="Close menu editor">×</button></div>
+<form id="menuItemForm"><div class="form-grid">
+<label>Menu Item Name<input name="name" required maxlength="160"></label><label>SKU<input name="sku" maxlength="80"></label>
+<label>Category<select name="categoryId"></select></label><label>Linked Recipe<select name="recipeId" required></select></label>
+<label>Selling Price<input name="sellingPrice" type="number" min="0.01" step="0.01" required></label><label>Target Food Cost %<input name="targetFoodCostPercent" type="number" min="0.1" max="100" step="any" placeholder="Use global target"></label>
+<label>Status<select name="active"><option value="true">Active</option><option value="false">Inactive</option></select></label><label>Low Availability Threshold<input name="limitedThreshold" type="number" min="0" step="any" value="10" required></label>
+<label>Availability<select name="status"><option value="AVAILABLE">Automatic — based on inventory</option><option value="MANUALLY_UNAVAILABLE">Manually unavailable</option></select></label><label>Unavailable Reason<input name="manualUnavailableReason" maxlength="200"></label>
+<label class="full-width">Description<textarea name="description" rows="2"></textarea></label>
+</div><div id="menuPreview" class="menu-edit-preview" aria-live="polite"></div><p id="menuFormError" class="recipe-error" role="alert"></p><div class="modal-actions"><button type="button" data-close class="secondary-button">Cancel</button><button id="menuSave" class="primary-button" type="submit">Create Menu Item</button></div></form></dialog>
+<script src="js/inventory-service.js"></script><script src="js/recipe-service.js"></script><script src="js/menu-service.js"></script><script src="js/components/ui-feedback.js"></script><script src="js/components/recipe-ui.js"></script><script src="js/menu.js"></script></body></html>

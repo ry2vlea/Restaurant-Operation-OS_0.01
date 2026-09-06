@@ -5,11 +5,12 @@
   const save = (items) => { localStorage.setItem(key, JSON.stringify(items)); contextCache = null; window.dispatchEvent(new CustomEvent("menu:changed")); return items; };
   const nextId = () => `MENU-${String(read().reduce((max, item) => Math.max(max, Number((item.id || "").replace("MENU-", "")) || 0), 0) + 1).padStart(6, "0")}`;
 
-  function getMenuItems() { return read(); }
+  function getMenuItems() { return read().filter((item) => !item.deletedAt); }
   function getCalculationContext() {
     if (contextCache) return contextCache;
     const items = getMenuItems();
-    const itemById = new Map(items.map((item) => [item.id, item]));
+    // Historical lookups retain deleted records; working lists exclude them.
+    const itemById = new Map(read().map((item) => [item.id, item]));
     const itemsByRecipe = new Map();
     items.forEach((item) => {
       if (!itemsByRecipe.has(item.recipeId)) itemsByRecipe.set(item.recipeId, []);
@@ -31,53 +32,52 @@
     return cost != null && Number(target) > 0 ? Number(cost) / (Number(target) / 100) : null;
   }
 
+  function normalizeMenuItem(values, existing = {}) {
+    const merged = { ...existing, ...values };
+    const recipe = RecipeService.getRecipeById(merged.recipeId);
+    const sellingPrice = Number(merged.sellingPrice);
+    const limitedThreshold = Number(merged.limitedThreshold ?? 10);
+    if (typeof merged.name !== "string" || !merged.name.trim()) throw new Error("Menu item name is required.");
+    if (!Number.isFinite(sellingPrice) || sellingPrice <= 0) throw new Error("Selling price must be a finite number greater than zero.");
+    if (!Number.isFinite(limitedThreshold) || limitedThreshold < 0) throw new Error("Limited threshold must be a non-negative number.");
+    if (!recipe || !["MENU_PRODUCT", "COMBO"].includes(recipe.type)) throw new Error("Select a valid Menu Product or Combo.");
+    if (recipe.active === false && recipe.id !== existing.recipeId) throw new Error("Select an active recipe.");
+    return { name: merged.name.trim(), sku: String(merged.sku || "").trim(),
+      categoryId: merged.categoryId || "MCAT-OTHER", recipeId: recipe.id, sellingPrice,
+      targetFoodCostPercent: targetFoodCost(merged.targetFoodCostPercent), limitedThreshold,
+      active: merged.active !== false, description: String(merged.description || ""),
+      status: merged.status === "MANUALLY_UNAVAILABLE" ? "MANUALLY_UNAVAILABLE" : "AVAILABLE",
+      manualUnavailableReason: merged.status === "MANUALLY_UNAVAILABLE" ? String(merged.manualUnavailableReason || "Manual management override") : null };
+  }
+
   function createMenuItem(values) {
-    const recipe = RecipeService.getRecipeById(values.recipeId);
-    if (!values.name?.trim() || !(Number(values.sellingPrice) > 0) || !recipe) throw new Error("Name, valid Menu Recipe and selling price are required.");
-    if (!["MENU_PRODUCT", "COMBO"].includes(RecipeService.recipeTypeOf(recipe))) throw new Error("Menu Items must link to a Menu Product or Combo.");
+    const normalized = normalizeMenuItem(values);
     const now = new Date().toISOString();
-    const item = {
-      id: nextId(),
-      name: values.name.trim(),
-      sku: values.sku || "",
-      categoryId: values.categoryId || "MCAT-OTHER",
-      recipeId: recipe.id,
-      sellingPrice: Number(values.sellingPrice),
-      targetFoodCostPercent: targetFoodCost(values.targetFoodCostPercent),
-      status: "AVAILABLE",
-      manualUnavailableReason: null,
-      active: true,
-      description: values.description || "",
-      limitedThreshold: Math.max(0, Number(values.limitedThreshold || 10)),
-      createdAt: now,
-      updatedAt: now
-    };
+    const item = { ...normalized, id: nextId(), createdAt: now, updatedAt: now };
     save([...read(), item]);
     return item;
   }
 
   function updateMenuItem(id, values) {
     const item = getMenuItemById(id);
-    if (!item) throw new Error("Menu item not found.");
-    const recipeId = values.recipeId || item.recipeId;
-    const recipe = RecipeService.getRecipeById(recipeId);
-    if (!recipe || !["MENU_PRODUCT", "COMBO"].includes(RecipeService.recipeTypeOf(recipe))) throw new Error("Select a valid Menu Product or Combo.");
-    const updated = {
-      ...item,
-      ...values,
-      recipeId,
-      sellingPrice: Number(values.sellingPrice ?? item.sellingPrice),
-      targetFoodCostPercent: targetFoodCost(values.targetFoodCostPercent === undefined ? item.targetFoodCostPercent : values.targetFoodCostPercent),
-      limitedThreshold: Number(values.limitedThreshold ?? item.limitedThreshold),
-      updatedAt: new Date().toISOString()
-    };
+    if (!item || item.deletedAt) throw new Error("Menu item not found.");
+    const updated = { ...item, ...normalizeMenuItem(values, item), updatedAt: new Date().toISOString() };
     save(read().map((value) => value.id === id ? updated : value));
     return updated;
   }
 
+  function deleteMenuItem(id) {
+    const item = getMenuItemById(id);
+    if (!item || item.deletedAt) throw new Error("Menu item not found.");
+    const now = new Date().toISOString();
+    const deleted = { ...item, active: false, deletedAt: now, updatedAt: now };
+    save(read().map((value) => value.id === id ? deleted : value));
+    return deleted;
+  }
+
   function setManualAvailability(id, unavailable, reason = "") {
     const item = getMenuItemById(id);
-    if (!item) throw new Error("Menu item not found.");
+    if (!item || item.deletedAt) throw new Error("Menu item not found.");
     const updated = {
       ...item,
       status: unavailable ? "MANUALLY_UNAVAILABLE" : "AVAILABLE",
@@ -93,7 +93,7 @@
     if (menuItem?.id && context.availabilityByItem.has(menuItem.id)) return context.availabilityByItem.get(menuItem.id);
     const inventoryContext = InventoryService.getCalculationContext();
     const recipe = RecipeService.getRecipeById(menuItem?.recipeId);
-    if (!menuItem || !recipe || recipe.active === false || !["MENU_PRODUCT", "COMBO"].includes(RecipeService.recipeTypeOf(recipe))) return { servings: 0, status: "UNAVAILABLE", limitingIngredient: null, ingredientAvailability: [] };
+    if (!menuItem || menuItem.active === false || menuItem.deletedAt || !recipe || recipe.active === false || !["MENU_PRODUCT", "COMBO"].includes(RecipeService.recipeTypeOf(recipe))) return { servings: 0, status: "UNAVAILABLE", limitingIngredient: null, ingredientAvailability: [] };
     let usage = [];
     try {
       usage = RecipeService.resolveInventoryUsage(RecipeService.recipeTypeOf(recipe), recipe.id, 1);
@@ -146,7 +146,7 @@
     return getCalculationContext().items.map((item) => ({ item, metric: calculateMenuMetrics(item) }));
   }
 
-  window.MenuService = { getMenuItems, getMenuItemById, getCalculationContext, getMenuRows, createMenuItem, updateMenuItem, setManualAvailability, calculateAvailability, calculateMenuMetrics, calculateSuggestedPrice };
+  window.MenuService = { getMenuItems, getMenuItemById, getCalculationContext, getMenuRows, createMenuItem, updateMenuItem, deleteMenuItem, setManualAvailability, calculateAvailability, calculateMenuMetrics, calculateSuggestedPrice };
   window.addEventListener?.("inventory:changed", () => { contextCache = null; });
   window.addEventListener?.("recipes:changed", () => { contextCache = null; });
   window.addEventListener?.("settings:changed", () => { contextCache = null; });

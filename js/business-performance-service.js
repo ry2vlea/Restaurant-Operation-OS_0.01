@@ -42,7 +42,7 @@
       createdAt: existing?.createdAt || now,
       updatedAt: now
     };
-    write(existing ? read().map((value) => value.date === date ? record : value) : [...read(), record]);
+    write(read().some(value => value.date === date) ? read().map((value) => value.date === date ? record : value) : [...read(), record]);
     window.recordActivity?.({ action: "BUSINESS_PERFORMANCE_SAVED", entityType: "BUSINESS_PERFORMANCE", entityId: record.id, description: `Business performance saved for ${date}` });
     return record;
   }
@@ -67,5 +67,13 @@
       .map(getByDate).sort((a, b) => b.date.localeCompare(a.date));
   }
 
-  window.BusinessPerformanceService = { getRecords: recordsInRange, getByDate, saveRecord, derive, recordsInRange };
+  function getLaborSummary(startDate, endDate = startDate) {
+    const records = read().filter(record => (!startDate || record.date >= startDate) && (!endDate || record.date <= endDate));
+    const recorded = records.some(record => record.laborDollars != null);
+    const laborDollars = records.reduce((total, record) => total + Number(record.laborDollars || 0), 0);
+    const netSales = SalesService.calculateMetrics(startDate, endDate).netSales;
+    return { recorded, laborDollars, laborPercent: recorded && netSales > 0 ? laborDollars / netSales * 100 : null };
+  }
+
+  window.BusinessPerformanceService = { getLaborSummary, getRecords: recordsInRange, getByDate, saveRecord, derive, recordsInRange };
 })();
