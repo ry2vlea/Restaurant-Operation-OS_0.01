@@ -1,100 +1,857 @@
 (function () {
-  function datesInRange(startDate, endDate) {
-    const dates = [];
-    const current = parseDate(startDate);
-    const end = parseDate(endDate);
-    if (!current || !end) return dates;
-    while (current <= end) {
-      dates.push(formatDate(current));
-      current.setDate(current.getDate() + 1);
-    }
-    return dates;
-  }
+
+  /* =========================================================
+     DATE HELPERS
+     ========================================================= */
 
   function parseDate(value) {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
+
     if (!match) return null;
-    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+
+    return new Date(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3])
+    );
   }
 
+
   function formatDate(date) {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0")
+    ].join("-");
   }
+
 
   function today() {
     return formatDate(new Date());
   }
 
-  function salesFor(date) {
-    return SalesService.calculateMetrics(date).netSales;
+
+  function addDays(dateString, days) {
+    const date = parseDate(dateString);
+
+    if (!date) return null;
+
+    date.setDate(date.getDate() + days);
+
+    return formatDate(date);
   }
+
+
+  function datesInRange(startDate, endDate) {
+    const dates = [];
+
+    const current = parseDate(startDate);
+    const end = parseDate(endDate);
+
+    if (!current || !end || current > end) {
+      return dates;
+    }
+
+    while (current <= end) {
+      dates.push(formatDate(current));
+
+      current.setDate(
+        current.getDate() + 1
+      );
+    }
+
+    return dates;
+  }
+
+
+  /* =========================================================
+     SETTINGS
+     ========================================================= */
+
+  function getTargetFoodCost() {
+    const settingsTarget =
+      window.SettingsService
+        ?.getSettings?.()
+        ?.targets
+        ?.foodCostPercent;
+
+    const storedTarget =
+      localStorage.getItem(
+        "targetFoodCostPercent"
+      );
+
+    return Number(
+      settingsTarget ||
+      storedTarget ||
+      30
+    );
+  }
+
+
+  /* =========================================================
+     SALES
+     ========================================================= */
+
+  function salesFor(date) {
+    return Number(
+      SalesService
+        .calculateMetrics(date)
+        .netSales || 0
+    );
+  }
+
+
+  function salesForRange(startDate, endDate) {
+    return datesInRange(
+      startDate,
+      endDate
+    ).reduce(
+      (total, date) =>
+        total + salesFor(date),
+      0
+    );
+  }
+
+
+  /* =========================================================
+     THEORETICAL COST
+     ========================================================= */
 
   function theoreticalUsageCost(date) {
-    return TheoreticalUsageService.calculateForDate(date).reduce((total, entry) => total + entry.theoreticalCost, 0);
+    return TheoreticalUsageService
+      .calculateForDate(date)
+      .reduce(
+        (total, entry) =>
+          total +
+          Number(entry.theoreticalCost || 0),
+        0
+      );
   }
 
-  function actualCogS(date) {
-    const context = AnalyticsContext.build();
-    const completed = context.counts.filter((count) => count.status === "COMPLETED" && count.date <= date).sort((a, b) => b.date.localeCompare(a.date));
-    if (completed.length < 2) return null;
-    const end = completed[0];
-    const start = completed[1];
-    const valueForCount = (count) => context.countLines
-      .filter((line) => line.countId === count.id)
-      .reduce((sum, line) => sum + Number(line.physicalQuantity || 0) * InventoryService.getBaseUnitCost(context.itemById.get(line.itemId)), 0);
-    const purchases = context.movements
-      .filter((movement) => movement.createdAt?.slice(0, 10) >= start.date && movement.createdAt?.slice(0, 10) <= end.date)
-      .filter((movement) => ["RECEIVE", "RETURN"].includes(movement.movementType))
-      .reduce((sum, movement) => sum + Number(movement.baseQuantity || 0) * Number(movement.unitCostAtMovement || InventoryService.getBaseUnitCost(context.itemById.get(movement.itemId))), 0);
-    return valueForCount(start) + purchases - valueForCount(end);
+
+  function theoreticalForRange(
+    startDate,
+    endDate
+  ) {
+    return datesInRange(
+      startDate,
+      endDate
+    ).reduce(
+      (total, date) =>
+        total +
+        theoreticalUsageCost(date),
+      0
+    );
   }
 
-  function calculate(date = today()) {
-    const netSales = salesFor(date);
-    const theoreticalCost = theoreticalUsageCost(date);
-    const actualCost = actualCogS(date);
-    const waste = AnalyticsContext.build().waste.filter((record) => record.createdAt?.slice(0, 10) === date).reduce((sum, record) => sum + Number(record.wasteCost || 0), 0);
-    const variance = window.VarianceService?.calculateLatest?.();
+
+  /* =========================================================
+     INVENTORY VALUE
+     ========================================================= */
+
+  function inventoryCountValue(
+    count,
+    context
+  ) {
+    if (!count) return 0;
+
+    return context.countLines
+      .filter(
+        (line) =>
+          line.countId === count.id
+      )
+      .reduce(
+        (sum, line) => {
+
+          const item =
+            context.itemById.get(
+              line.itemId
+            );
+
+          if (!item) {
+            return sum;
+          }
+
+          const unitCost =
+            Number(
+              InventoryService
+                .getBaseUnitCost(item) || 0
+            );
+
+          const quantity =
+            Number(
+              line.physicalQuantity || 0
+            );
+
+          return sum +
+            quantity * unitCost;
+        },
+        0
+      );
+  }
+
+
+  /* =========================================================
+     MOVEMENT COST
+     ========================================================= */
+
+  function movementUnitCost(
+    movement,
+    context
+  ) {
+    const recordedCost =
+      Number(
+        movement.unitCostAtMovement
+      );
+
+    if (
+      Number.isFinite(recordedCost) &&
+      recordedCost > 0
+    ) {
+      return recordedCost;
+    }
+
+    const item =
+      context.itemById.get(
+        movement.itemId
+      );
+
+    if (!item) {
+      return 0;
+    }
+
+    return Number(
+      InventoryService
+        .getBaseUnitCost(item) || 0
+    );
+  }
+
+
+  function movementExtendedCost(
+    movement,
+    context
+  ) {
+    const quantity =
+      Math.abs(
+        Number(
+          movement.baseQuantity || 0
+        )
+      );
+
+    return quantity *
+      movementUnitCost(
+        movement,
+        context
+      );
+  }
+
+
+  /* =========================================================
+     PURCHASES
+     ========================================================= */
+
+  function purchaseActivity(
+    startDate,
+    endDate,
+    context
+  ) {
+    const result = {
+      receives: 0,
+      returns: 0,
+      netPurchases: 0
+    };
+
+    context.movements
+      .filter((movement) => {
+
+        const date =
+          movement.createdAt?.slice(
+            0,
+            10
+          );
+
+        return (
+          date &&
+          date >= startDate &&
+          date <= endDate &&
+          ["RECEIVE", "RETURN"]
+            .includes(
+              movement.movementType
+            )
+        );
+      })
+      .forEach((movement) => {
+
+        const value =
+          movementExtendedCost(
+            movement,
+            context
+          );
+
+        if (
+          movement.movementType ===
+          "RECEIVE"
+        ) {
+          result.receives += value;
+        }
+
+        if (
+          movement.movementType ===
+          "RETURN"
+        ) {
+          result.returns += value;
+        }
+      });
+
+    result.netPurchases =
+      result.receives -
+      result.returns;
+
+    return result;
+  }
+
+
+  /* =========================================================
+     WASTE
+     ========================================================= */
+
+  function wasteForRange(
+    startDate,
+    endDate,
+    context
+  ) {
+    return context.waste
+      .filter((record) => {
+
+        const date =
+          record.createdAt?.slice(
+            0,
+            10
+          );
+
+        return (
+          date &&
+          date >= startDate &&
+          date <= endDate
+        );
+      })
+      .reduce(
+        (sum, record) =>
+          sum +
+          Number(
+            record.wasteCost || 0
+          ),
+        0
+      );
+  }
+
+
+  /* =========================================================
+     COMPLETED COUNTS
+     ========================================================= */
+
+  function getCompletedCounts(context) {
+    return context.counts
+      .filter(
+        (count) =>
+          count.status === "COMPLETED"
+      )
+      .sort(
+        (a, b) =>
+          a.date.localeCompare(b.date)
+      );
+  }
+
+
+  /* =========================================================
+     ACTUAL COGS PERIOD
+     ========================================================= */
+
+  function actualCogSForRange(
+    requestedStartDate,
+    requestedEndDate,
+    context
+  ) {
+    const completed =
+      getCompletedCounts(context);
+
+    if (completed.length < 2) {
+      return null;
+    }
+
+
+    /*
+      Counts are treated as end-of-day snapshots.
+
+      Example:
+
+      Aug 31 Closing Count
+          ↓
+      Sep 1 - Sep 7 activity
+          ↓
+      Sep 7 Closing Count
+
+      COGS =
+      Opening Inventory
+      + Net Purchases
+      - Closing Inventory
+    */
+
+
+    const openingCandidates =
+      completed.filter(
+        (count) =>
+          count.date <
+          requestedStartDate
+      );
+
+    let opening =
+      openingCandidates[
+        openingCandidates.length - 1
+      ];
+
+
+    /*
+      Fallback in case the system does not
+      yet contain a count before the
+      selected start date.
+    */
+
+    if (!opening) {
+      const candidates =
+        completed.filter(
+          (count) =>
+            count.date <=
+            requestedStartDate
+        );
+
+      opening =
+        candidates[
+          candidates.length - 1
+        ];
+    }
+
+
+    if (!opening) {
+      return null;
+    }
+
+
+    const closingCandidates =
+      completed.filter(
+        (count) =>
+          count.date > opening.date &&
+          count.date <= requestedEndDate
+      );
+
+
+    const closing =
+      closingCandidates[
+        closingCandidates.length - 1
+      ];
+
+
+    if (!closing) {
+      return null;
+    }
+
+
+    /*
+      The period begins the day after
+      the opening count.
+    */
+
+    const coverageStartDate =
+      addDays(
+        opening.date,
+        1
+      );
+
+    const coverageEndDate =
+      closing.date;
+
+
+    if (
+      !coverageStartDate ||
+      coverageStartDate >
+        coverageEndDate
+    ) {
+      return null;
+    }
+
+
+    const openingInventory =
+      inventoryCountValue(
+        opening,
+        context
+      );
+
+    const closingInventory =
+      inventoryCountValue(
+        closing,
+        context
+      );
+
+
+    const purchaseData =
+      purchaseActivity(
+        coverageStartDate,
+        coverageEndDate,
+        context
+      );
+
+
+    const actualCost =
+      openingInventory +
+      purchaseData.netPurchases -
+      closingInventory;
+
+
+    /*
+      IMPORTANT:
+
+      Sales and theoretical usage used
+      for Actual Food Cost must cover
+      exactly the same inventory period.
+    */
+
+    const periodNetSales =
+      salesForRange(
+        coverageStartDate,
+        coverageEndDate
+      );
+
+
+    const periodTheoreticalCost =
+      theoreticalForRange(
+        coverageStartDate,
+        coverageEndDate
+      );
+
+
+    const actualFoodCostPercent =
+      periodNetSales > 0
+        ? actualCost /
+          periodNetSales *
+          100
+        : null;
+
+
+    const theoreticalFoodCostPercent =
+      periodNetSales > 0
+        ? periodTheoreticalCost /
+          periodNetSales *
+          100
+        : null;
+
+
     return {
-      date,
-      netSales,
-      theoreticalCost,
-      theoreticalFoodCostPercent: netSales > 0 ? theoreticalCost / netSales * 100 : null,
+      openingCountId:
+        opening.id,
+
+      closingCountId:
+        closing.id,
+
+      openingCountDate:
+        opening.date,
+
+      closingCountDate:
+        closing.date,
+
+      coverageStartDate,
+      coverageEndDate,
+
+      openingInventory,
+      closingInventory,
+
+      purchases:
+        purchaseData.receives,
+
+      returns:
+        purchaseData.returns,
+
+      netPurchases:
+        purchaseData.netPurchases,
+
+      netSales:
+        periodNetSales,
+
+      theoreticalCost:
+        periodTheoreticalCost,
+
+      theoreticalFoodCostPercent,
+
       actualCost,
-      actualFoodCostPercent: actualCost != null && netSales > 0 ? actualCost / netSales * 100 : null,
-      foodCostVariancePoints: actualCost != null && netSales > 0 ? actualCost / netSales * 100 - theoreticalCost / netSales * 100 : null,
-      targetFoodCostPercent: Number(window.SettingsService?.getSettings?.().targets?.foodCostPercent || localStorage.getItem("targetFoodCostPercent") || 30),
-      wasteCost: waste,
-      inventoryVarianceCost: variance?.totals?.netVariance ?? null,
-      purchases: AnalyticsContext.build().movements.filter((movement) => movement.createdAt?.slice(0, 10) === date && movement.movementType === "RECEIVE").reduce((sum, movement) => sum + Number(movement.baseQuantity || 0) * Number(movement.unitCostAtMovement || 0), 0)
+
+      actualFoodCostPercent
     };
   }
 
-  function calculateRange(startDate = today(), endDate = startDate) {
-    const dates = datesInRange(startDate, endDate);
-    if (!dates.length) return calculate(today());
-    const daily = dates.map((date) => calculate(date));
-    const netSales = daily.reduce((total, entry) => total + Number(entry.netSales || 0), 0);
-    const theoreticalCost = daily.reduce((total, entry) => total + Number(entry.theoreticalCost || 0), 0);
-    const actualValues = daily.map((entry) => entry.actualCost).filter((value) => value != null);
-    const actualCost = actualValues.length ? actualValues.reduce((total, value) => total + Number(value || 0), 0) : null;
-    const wasteCost = daily.reduce((total, entry) => total + Number(entry.wasteCost || 0), 0);
-    const purchases = daily.reduce((total, entry) => total + Number(entry.purchases || 0), 0);
+
+  /* =========================================================
+     RANGE CALCULATION
+     ========================================================= */
+
+  function calculateRange(
+    startDate = today(),
+    endDate = startDate
+  ) {
+
+    if (
+      !parseDate(startDate) ||
+      !parseDate(endDate) ||
+      startDate > endDate
+    ) {
+      startDate = today();
+      endDate = startDate;
+    }
+
+
+    /*
+      Build analytics context once.
+
+      The old service called
+      AnalyticsContext.build()
+      several times per calculation.
+    */
+
+    const context =
+      AnalyticsContext.build();
+
+
+    const targetFoodCostPercent =
+      getTargetFoodCost();
+
+
+    /* Selected date range */
+
+    const netSales =
+      salesForRange(
+        startDate,
+        endDate
+      );
+
+
+    const theoreticalCost =
+      theoreticalForRange(
+        startDate,
+        endDate
+      );
+
+
+    const theoreticalFoodCostPercent =
+      netSales > 0
+        ? theoreticalCost /
+          netSales *
+          100
+        : null;
+
+
+    const purchaseData =
+      purchaseActivity(
+        startDate,
+        endDate,
+        context
+      );
+
+
+    const wasteCost =
+      wasteForRange(
+        startDate,
+        endDate,
+        context
+      );
+
+
+    /* Actual inventory period */
+
+    const actualPeriod =
+      actualCogSForRange(
+        startDate,
+        endDate,
+        context
+      );
+
+
+    const actualCost =
+      actualPeriod?.actualCost ??
+      null;
+
+
+    const actualFoodCostPercent =
+      actualPeriod
+        ?.actualFoodCostPercent ??
+      null;
+
+
+    /*
+      Actual vs Theoretical must use
+      the SAME count coverage period.
+    */
+
+    const comparisonTheoreticalPercent =
+      actualPeriod
+        ?.theoreticalFoodCostPercent ??
+      null;
+
+
+    const foodCostVariancePoints =
+      actualFoodCostPercent != null &&
+      comparisonTheoreticalPercent != null
+        ? actualFoodCostPercent -
+          comparisonTheoreticalPercent
+        : null;
+
+
+    /*
+      Separate variance against
+      management target.
+    */
+
+    const targetVariancePoints =
+      actualFoodCostPercent != null
+        ? actualFoodCostPercent -
+          targetFoodCostPercent
+        : null;
+
+
+    /* Inventory variance */
+
+    const rangeVariance =
+      window.VarianceService
+        ?.calculateForRange?.(
+          startDate,
+          endDate
+        );
+
+
+    const inventoryVarianceCost =
+      rangeVariance
+        ?.totals
+        ?.netVariance ??
+      null;
+
+
     return {
+
+      /* Requested range */
+
       startDate,
       endDate,
+
+
+      /* Sales */
+
       netSales,
+
+
+      /* Theoretical */
+
       theoreticalCost,
-      theoreticalFoodCostPercent: netSales > 0 ? theoreticalCost / netSales * 100 : null,
+
+      theoreticalFoodCostPercent,
+
+
+      /* Actual */
+
       actualCost,
-      actualFoodCostPercent: actualCost != null && netSales > 0 ? actualCost / netSales * 100 : null,
-      foodCostVariancePoints: actualCost != null && netSales > 0 ? actualCost / netSales * 100 - theoreticalCost / netSales * 100 : null,
-      targetFoodCostPercent: daily[0]?.targetFoodCostPercent || Number(window.SettingsService?.getSettings?.().targets?.foodCostPercent || localStorage.getItem("targetFoodCostPercent") || 30),
+
+      actualFoodCostPercent,
+
+
+      /* Comparison */
+
+      comparisonTheoreticalFoodCostPercent:
+        comparisonTheoreticalPercent,
+
+      foodCostVariancePoints,
+
+      targetVariancePoints,
+
+      targetFoodCostPercent,
+
+
+      /* Inventory period */
+
+      actualCoverageStartDate:
+        actualPeriod
+          ?.coverageStartDate ??
+        null,
+
+      actualCoverageEndDate:
+        actualPeriod
+          ?.coverageEndDate ??
+        null,
+
+      openingInventory:
+        actualPeriod
+          ?.openingInventory ??
+        null,
+
+      closingInventory:
+        actualPeriod
+          ?.closingInventory ??
+        null,
+
+      actualPeriodNetSales:
+        actualPeriod
+          ?.netSales ??
+        null,
+
+      actualPeriodTheoreticalCost:
+        actualPeriod
+          ?.theoreticalCost ??
+        null,
+
+
+      /* Purchases */
+
+      purchases:
+        purchaseData.receives,
+
+      purchaseReturns:
+        purchaseData.returns,
+
+      netPurchases:
+        purchaseData.netPurchases,
+
+
+      /* Waste */
+
       wasteCost,
-      inventoryVarianceCost: window.VarianceService?.calculateForRange?.(startDate, endDate)?.totals?.netVariance ?? window.VarianceService?.calculateLatest?.().totals?.netVariance ?? null,
-      purchases
+
+
+      /* Inventory variance */
+
+      inventoryVarianceCost
     };
   }
 
-  window.FoodCostService = { calculate, calculateRange };
+
+  /* =========================================================
+     SINGLE DAY
+     ========================================================= */
+
+  function calculate(
+    date = today()
+  ) {
+    return {
+      date,
+      ...calculateRange(
+        date,
+        date
+      )
+    };
+  }
+
+
+  /* =========================================================
+     PUBLIC API
+     ========================================================= */
+
+  window.FoodCostService = {
+    calculate,
+    calculateRange
+  };
+
 })();
