@@ -2,18 +2,156 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Food Cost Control | Restaurant OS</title>
+
     <link rel="stylesheet" href="css/04_dense_ops.css">
   </head>
+
   <body>
-<aside class="sidebar" aria-label="Main navigation"></aside>
-<script src="js/components/app-shell.js"></script>
-    <main class="main recipe-main">
+
+    <!-- APP SIDEBAR -->
+    <aside
+      class="sidebar"
+      aria-label="Main navigation">
+    </aside>
+
+    <script src="js/components/app-shell.js"></script>
+
+
+    <!-- MAIN -->
+    <main class="main food-cost-main">
+
+      <!-- GLOBAL HEADER -->
       <div id="appHeader"></div>
-      <section id="foodCostMetrics" class="inventory-metrics"></section>
-      <div id="foodCostSections" class="management-grid"></div>
+
+
+      <!-- FOOD COST HERO -->
+      <section class="food-cost-hero">
+
+        <div class="food-cost-hero__content">
+
+          <div class="food-cost-hero__eyebrow">
+            PERFORMANCE · COST CONTROL
+          </div>
+
+          <h1 class="food-cost-hero__title">
+            Food Cost Overview
+          </h1>
+
+          <p class="food-cost-hero__description">
+            Understand what your food should cost, what it actually costs,
+            and where profitability is being lost.
+          </p>
+
+        </div>
+
+
+        <div class="food-cost-hero__status">
+
+          <span class="food-cost-status-label">
+            Cost Health
+          </span>
+
+          <div class="food-cost-status-value">
+            Live
+          </div>
+
+          <span class="food-cost-status-note">
+            Based on current inventory, recipes and sales
+          </span>
+
+        </div>
+
+      </section>
+
+
+      <!-- KPI SECTION -->
+      <section class="food-cost-section">
+
+        <div class="section-heading">
+
+          <div>
+            <span class="section-eyebrow">
+              PERFORMANCE SNAPSHOT
+            </span>
+
+            <h2>
+              Food Cost Health
+            </h2>
+          </div>
+
+          <p class="section-heading__description">
+            Key indicators affecting restaurant profitability.
+          </p>
+
+        </div>
+
+
+        <!--
+          food-cost.js continues rendering the KPI cards here.
+          Keep this ID unchanged.
+        -->
+        <div
+          id="foodCostMetrics"
+          class="inventory-metrics food-cost-metrics">
+        </div>
+
+      </section>
+
+
+      <!-- MANAGEMENT INSIGHTS -->
+      <section class="food-cost-section">
+
+        <div class="section-heading">
+
+          <div>
+            <span class="section-eyebrow">
+              COST ANALYSIS
+            </span>
+
+            <h2>
+              Management Insights
+            </h2>
+          </div>
+
+          <p class="section-heading__description">
+            Analyze theoretical cost, actual usage, variance and menu performance.
+          </p>
+
+        </div>
+
+
+        <!--
+          food-cost.js continues rendering all management sections here.
+          Keep this ID unchanged.
+        -->
+        <div
+          id="foodCostSections"
+          class="management-grid food-cost-management-grid">
+        </div>
+
+      </section>
+
+
+      <!-- FOOTER NOTE -->
+      <footer class="food-cost-footer">
+
+        <span>
+          Restaurant Operations OS
+        </span>
+
+        <span>
+          Food Cost Intelligence
+        </span>
+
+      </footer>
+
     </main>
+
+
+    <!-- CORE SERVICES -->
     <script src="js/inventory-service.js"></script>
     <script src="js/recipe-service.js"></script>
     <script src="js/menu-service.js"></script>
@@ -24,7 +162,11 @@
     <script src="js/analytics-context.js"></script>
     <script src="js/variance-service.js"></script>
     <script src="js/food-cost-service.js"></script>
+
+
+    <!-- COMPONENTS -->
     <script src="js/components/app-header.js"></script>
+
     <script>
       AppHeader.init({
         section: "PERFORMANCE",
@@ -35,6 +177,10 @@
         showDateSelector: true
       });
     </script>
+
+
+    <!-- PAGE -->
     <script src="js/food-cost.js"></script>
+
   </body>
 </html>
