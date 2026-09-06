@@ -1,0 +1,21 @@
+/* Dense Ops design tokens. Loaded by the 04_dense_ops.css application entry point. */
+:root {
+  --font-ui: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --brand: #225D8C; --brand-hover: #1A4C74; --on-brand: #FFFFFF;
+  --bg: #F2F4F6; --surface: #FFFFFF; --surface-soft: #F6F8FA;
+  --text: #18222C; --text-2: #52606C; --text-3: #637381;
+  --border: #D9E0E6; --border-strong: #C1CBD4;
+  --sidebar-bg: #15222D; --sidebar-text: #DCE4EA; --sidebar-muted: #8896A2;
+  --sidebar-border: #263642; --sidebar-hover: #1D2E3A;
+  --sidebar-active-bg: #244968; --sidebar-active-text: #FFFFFF;
+  --success: #2D7559; --success-bg: #E8F4EE;
+  --warning: #96611B; --warning-bg: #FFF3DA;
+  --danger: #AD4141; --danger-bg: #FBE9E9;
+  --info: #316C98; --info-bg: #E8F1F7;
+  --focus-ring: #75A7CF; --focus-soft: rgba(34,93,140,.12);
+  --table-head: #EEF2F5; --table-hover: #F7F9FA;
+  --radius-sm: 6px; --radius-md: 8px; --radius-lg: 9px; --radius-xl: 12px;
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.035);
+  --shadow-md: 0 4px 12px rgba(15,23,42,.07);
+  --shadow-lg: 0 14px 36px rgba(15,23,42,.16);
+}
