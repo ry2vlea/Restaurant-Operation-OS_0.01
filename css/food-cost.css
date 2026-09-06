@@ -1108,3 +1108,34 @@
   }
 
 }
+
+/* =========================================================
+   FOOD COST OVERVIEW
+   ========================================================= */
+
+.food-cost-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(300px, 1.2fr);
+  gap: 36px;
+  align-items: center;
+}
+
+.food-cost-overview-message {
+  margin-top: 10px;
+
+  color: var(--fc-muted);
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.food-cost-display__value {
+  margin-top: 4px;
+}
+
+@media (max-width: 760px) {
+  .food-cost-overview-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
